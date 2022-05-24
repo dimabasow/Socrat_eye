@@ -9,14 +9,29 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QTreeWidgetItem
 
 from ui_main_window import Ui_MainWindow
-from socrat_eye import socrat_calculation, socrat_calculation_series
+from socrat_eye import Socrat_calculation, Trap_calculation, Series_of_calculations
 
+# функция для обработки cut_down и cut_up
+def cut_str_to_dict(cut_str):
+    name, value = cut_str.split(";")
+    if value != "min" and value != "max":
+        try:
+            value = float(value)
+        except:
+            value = None
+    if value is None:
+        return None
+    else:
+        return {"name": name, "value": value}
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        # Инициализация списка с расчётами
+        self.calculations = []
 
         # Подключение общих кнопок
         # Кнопка для выбора пути сохранения результатов
@@ -484,24 +499,52 @@ class MainWindow(QMainWindow):
                 for index in select_indexies:
                     tree.topLevelItem(index).setSelected(True)
 
+
+
+    # метод для предварительной загрузки
+    def pre_run(self):
+        #сброс предварительно загруженных результатов
+        self.calculations=[]
+        # Получение параметров с вкладки Данные
+        calculations_columns = ["name", "cut_down", "cut_up", "path"]
+        for item_index in range(self.ui.treeWidget_calculations.topLevelItemCount()):
+            item = self.ui.treeWidget_calculations.topLevelItem(item_index)
+            item_dict = {}
+            item_values = [item.text(columns_index) for columns_index in range(item.columnCount())]
+            for column, value in zip(calculations_columns, item_values):
+                item_dict[column] = value
+            for cut_name in ("cut_down", "cut_up"):
+                item_dict[cut_name] = cut_str_to_dict(item_dict[cut_name])
+
+            if item_dict["path"].endswith(".sokle"):
+                with open(item_dict["path"], 'rb') as f:
+                    calc = pickle.load(f)
+            elif os.path.isdir(item_dict["path"]):
+                file_names_list = os.listdir(item_dict["path"])
+                file_names = ";".join(file_names_list)
+                if ".dia;" in file_names:
+                    calc = Socrat_calculation(item_dict["path"])
+                elif "lent3" in file_names_list:
+                    calc = Trap_calculation(item_dict["path"])
+                else:
+                    print("Проблемы с " + item_dict["path"])
+                    self.calculations = []
+                    break
+            else:
+                print("Проблемы с " + item_dict["path"])
+                self.calculations = []
+                break
+            item_dict["calc_object"]=calc
+
+            self.calculations.append(item_dict)
+
     # метод для БОЛЬШОЙ КНОПКИ Выполнить
     def run_programm(self):
 
         # Список для Multy
         calculations_list = []
 
-        # функция для обработки cut_down и cut_up
-        def cut_str_to_dict(cut_str):
-            name, value = cut_str.split(";")
-            if value != "min" and value != "max":
-                try:
-                    value = float(value)
-                except:
-                    value = None
-            if value is None:
-                return None
-            else:
-                return {"name": name, "value": value}
+        path_save = self.ui.line_path_to_save.text()
 
         # функция для перевода из строки в float число
         def str_to_number(number_str):
@@ -534,19 +577,10 @@ class MainWindow(QMainWindow):
             else:
                 return int(round(value, -2))
 
-        # Получение параметров с вкладки Данные
-        path_save = self.ui.line_path_to_save.text()
-        calculations = []
-        calculations_columns = ["name", "cut_down", "cut_up", "path"]
-        for item_index in range(self.ui.treeWidget_calculations.topLevelItemCount()):
-            item = self.ui.treeWidget_calculations.topLevelItem(item_index)
-            item_dict = {}
-            item_values = [item.text(columns_index) for columns_index in range(item.columnCount())]
-            for column, value in zip(calculations_columns, item_values):
-                item_dict[column] = value
-            for cut_name in ("cut_down", "cut_up"):
-                item_dict[cut_name] = cut_str_to_dict(item_dict[cut_name])
-            calculations.append(item_dict)
+        # Проверка предварительной загрузки:
+        if len(self.calculations)==0:
+            self.pre_run()
+
         # Получение параметров с вкладки Обработка
         always_zero_parameters = self.ui.line_always_zero_parameters.text().split(";")
         not_zero_parameters = self.ui.line_not_zero_parameters.text().split(";")
@@ -689,19 +723,10 @@ class MainWindow(QMainWindow):
             self.ui.line_path_to_save.setText(path_save)
         os.chdir(path_save)
         # Обработка результатов
-        for calculation in calculations:
-            # Открытие
-            if calculation["path"].endswith(".sokle"):
-                with open(calculation["path"], 'rb') as f:
-                    calc = pickle.load(f)
-            elif os.path.isdir(calculation["path"]):
-                file_names = os.listdir(calculation["path"])
-                file_names = ";".join(file_names)
-                if ".dia;" in file_names:
-                    calc = socrat_calculation(calculation["path"])
-            else:
-                print("Проблемы с " + calculation["path"])
-                break
+        for calculation in self.calculations:
+
+            calc=calculation["calc_object"]
+
             # Обрезка снизу и сверху
             calc.cut_bottom_transform(calculation["cut_down"]["name"], calculation["cut_down"]["value"])
             calc.cut_top_transform(calculation["cut_up"]["name"], calculation["cut_up"]["value"])
@@ -710,8 +735,11 @@ class MainWindow(QMainWindow):
                 calc.save(name=calculation["name"])
 
             # Корректировка
-            calc.last_zero_parameters_transform(always_zero_parameters)
-            calc.not_zero_parameters_transform(not_zero_parameters)
+            # Специфика СОКРАТа
+            if isinstance(calc, Socrat_calculation):
+                calc.last_zero_parameters_transform(always_zero_parameters)
+                calc.not_zero_parameters_transform(not_zero_parameters)
+            # Умножене и смещение
             for corrected_parameter in corrected_parameters:
                 calc.values_mult_shift(corrected_parameter["name"], mult=corrected_parameter["mult"],
                                        shift=corrected_parameter["shift"])
@@ -808,7 +836,7 @@ class MainWindow(QMainWindow):
             calculations_list.append(calc)
 
         # Создание объекта для хранения Multy
-        calculation_series = socrat_calculation_series(calculations_list)
+        calculation_series = Series_of_calculations(calculations_list)
 
         if len(graphs_multy)>0:
             # Открытие папки для сохранения в режиме Multy
@@ -840,7 +868,7 @@ class MainWindow(QMainWindow):
         doc = docx.Document()
 
         # Расшифровка чисел
-        numbers_to_names=["{} - {}".format(str(i+1),calculations[i]["name"]) for i in range(len(calculations))]
+        numbers_to_names=["{} - {}".format(str(i+1),self.calculations[i]["name"]) for i in range(len(self.calculations))]
         numbers_to_names="\n".join(numbers_to_names)
         doc.add_paragraph(numbers_to_names)
 
@@ -853,7 +881,7 @@ class MainWindow(QMainWindow):
                                   cols=len(calculation_series.chrono_table.columns))
             table.style = "Table Grid"
             table.cell(0, 0).text = "Событие"
-            for i in range(len(calculations)):
+            for i in range(len(self.calculations)):
                 table.cell(0, i + 1).text = str(i+1)
             for i in range(len(calculation_series.chrono_table.columns)):
                 for k in range(len(calculation_series.chrono_table)):
@@ -868,7 +896,7 @@ class MainWindow(QMainWindow):
                                   cols=len(calculation_series.key_parameters_table.columns))
             table.style = "Table Grid"
             table.cell(0, 0).text = "Параметр"
-            for i in range(len(calculations)):
+            for i in range(len(self.calculations)):
                 table.cell(0, i + 1).text = str(i+1)
             for i in range(len(calculation_series.key_parameters_table.columns)):
                 for k in range(len(calculation_series.key_parameters_table)):
