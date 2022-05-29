@@ -11,20 +11,8 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QTreeWidgetItem
 from ui_main_window import Ui_MainWindow
 from socrat_eye import Socrat_calculation, Trap_calculation, Series_of_calculations
 
-# функция для обработки cut_down и cut_up
-def cut_str_to_dict(cut_str):
-    name, value = cut_str.split(";")
-    if value != "min" and value != "max":
-        try:
-            value = float(value)
-        except:
-            value = None
-    if value is None:
-        return None
-    else:
-        return {"name": name, "value": value}
 
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow):о
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
@@ -503,6 +491,19 @@ class MainWindow(QMainWindow):
 
     # метод для предварительной загрузки
     def pre_run(self):
+        # функция для обработки cut_down и cut_up
+        def cut_str_to_dict(cut_str):
+            name, value = cut_str.split(";")
+            if value != "min" and value != "max":
+                try:
+                    value = float(value)
+                except:
+                    value = None
+            if value is None:
+                return None
+            else:
+                return {"name": name, "value": value}
+
         #сброс предварительно загруженных результатов
         self.calculations=[]
         # Получение параметров с вкладки Данные
@@ -541,6 +542,19 @@ class MainWindow(QMainWindow):
     # метод для БОЛЬШОЙ КНОПКИ Выполнить
     def run_programm(self):
 
+        # функция для обработки cut_down и cut_up
+        def cut_str_to_dict(cut_str):
+            name, value = cut_str.split(";")
+            if value != "min" and value != "max":
+                try:
+                    value = float(value)
+                except:
+                    value = None
+            if value is None:
+                return None
+            else:
+                return {"name": name, "value": value}
+
         # Список для Multy
         calculations_list = []
 
@@ -577,9 +591,8 @@ class MainWindow(QMainWindow):
             else:
                 return int(round(value, -2))
 
-        # Проверка предварительной загрузки:
-        if len(self.calculations)==0:
-            self.pre_run()
+        # Предварительная загрузка:
+        self.pre_run()
 
         # Получение параметров с вкладки Обработка
         always_zero_parameters = self.ui.line_always_zero_parameters.text().split(";")

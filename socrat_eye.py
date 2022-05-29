@@ -133,8 +133,7 @@ def graph (GrName, get_x, get_y, lablex="t, s", labley="", x1=None, y1=None, x2=
 
 class Calculation:
 
-    def __init__(self, path_to_folder):
-        self.path_to_results = path_to_folder
+    def __init__(self):
 
         # словарь для #_report.lst, p1runout и p1spn
         self.data_dict = {}
@@ -376,13 +375,51 @@ class Calculation:
         copy_to_save.reset_data()
         with open(path + name + '.sokle', 'wb') as f:
             pickle.dump(copy_to_save, f)
+    
+    # метод для получения получения пользовательских значений
+    def get_user_values(self, expression):
+        import re
+        init_expression=expression
+        str_values_with_bracets=re.findall("\{\w*\}", expression)
+        for str_value_with_bracets in str_values_with_bracets:
+            str_value=str_value_with_bracets[1:-1]
+            str_value="self.get_values('{}')".format(str_value)
+            expression=expression.replace(str_value_with_bracets, str_value)
+        
+        try:
+            value=eval(expression)
+        except:
+            print("Ошибка при выполнении " + init_expression)
+            value=None
+        return value
+    
+    # метод для корректировки параметров
+    def correcting_parameters(self, name, expression, integral=False, derivative=False):
+        import pandas as pd
+        import numpy as np
+        value=self.get_user_values(expression)
+        if isinstance(value, pd.Series):
+            names_frame=list(self.data_dict.keys())
+            if "report" in names_frame:
+                names_frame.remove("report")
+            for name_frame in names_frame:
+                if len(self.data_dict[name_frame])==len(value):
+                    table=self.data_dict[name_frame]
+                    
+                    if isinstance(integral,bool) and isinstance(derivative,bool) and integral!=derivative:
+                        x=table.iloc[:,0]
+                        if integral:
+                            value=np.array([np.trapz(value[:i+1],x[:i+1]) for i in range(len(value))])
+                        if derivative:
+                            value=np.gradient(value,x)
+                    table[name]=value
 
 
 class Socrat_calculation(Calculation):
     
     def __init__(self,path_to_folder, dia_names=[], time_shift=None):
 
-        super().__init__(path_to_folder)
+        super().__init__()
 
         import os
         import pandas
@@ -534,8 +571,7 @@ class Socrat_calculation(Calculation):
 class Trap_calculation(Calculation):
 
     def __init__(self, path_to_folder):
-        print(path_to_folder)
-        super().__init__(path_to_folder)
+        super().__init__()
 
         import os
         import pandas
