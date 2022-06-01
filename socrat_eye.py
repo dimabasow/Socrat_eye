@@ -193,6 +193,7 @@ class Calculation:
     def get_parameter_table(self, name_values):
         if isinstance(name_values, str):
             name_values = [name_values]
+
         return_table = None
         for table_name in self.data_dict:
             table = self.data_dict[table_name]
@@ -313,8 +314,11 @@ class Calculation:
 
     # метод для отрисовки графика
     def graph(self, GrName, x_names, y_names, lablex="t, s", labley="", x1=None, y1=None, x2=None, y2=None, mult_x=None,
-              mult_y=None, shift_x=None, shift_y=None, stpx=None, stpy=None):
+              mult_y=None, shift_x=None, shift_y=None, stpx=None, stpy=None, empty_graphs=True):
 
+        import numpy
+
+        # Перевод названий по оси y в список
         if isinstance(y_names, str):
             y_names = [y_names]
         if isinstance(x_names, str):
@@ -326,12 +330,25 @@ class Calculation:
         get_x = [self.get_values(x_name) for x_name in x_names]
         get_y = [self.get_values(y_name) for y_name in y_names]
 
-        path_dict = graph(GrName, get_x, get_y, lablex=lablex, labley=labley, x1=x1, y1=y1, x2=x2, y2=y2, mult_x=mult_x,
-                          mult_y=mult_y, shift_x=shift_x, shift_y=shift_y, stpx=stpx, stpy=stpy)
+        draw_graph = True
+        None_list=[i is None for i in get_x+get_y]
+        if True in None_list:
+            draw_graph=False
+            print("Ошибка при построении графика " + GrName)
 
-        path_dict["x"] = "_".join(x_names)
-        path_dict["y"] = "_".join(y_names)
-        self.graph_list.append(path_dict)
+        if draw_graph and (not empty_graphs):
+            empty_list=[numpy.all(y == y[0]) for y in get_y]
+            if False not in empty_list:
+                draw_graph=False
+                print("График {} пустой".format(GrName))
+
+        if draw_graph:
+            path_dict = graph(GrName, get_x, get_y, lablex=lablex, labley=labley, x1=x1, y1=y1, x2=x2, y2=y2, mult_x=mult_x,
+                              mult_y=mult_y, shift_x=shift_x, shift_y=shift_y, stpx=stpx, stpy=stpy)
+
+            path_dict["x"] = "_".join(x_names)
+            path_dict["y"] = "_".join(y_names)
+            self.graph_list.append(path_dict)
 
     # метод для создания хронологии
     def make_chrono(self, time_list):
@@ -426,70 +443,80 @@ class Socrat_calculation(Calculation):
         initial_dir=os.getcwd()
         #метод, выполняемый при инициализации для парсинга файла #_report.lst
         def parsing_report(filename):
-            f = open(filename,'r')
-            f=f.read()
-            f=f.split("\n")
-            indexes=[]
+            f = open(filename, 'r')
+            f = f.read()
+            f = f.split("\n")
+            indexes = []
             for i in range(len(f)):
-                if "TRIP_ONE IS" in f[i] or "TRIP_TWO IS" in f[i] or "COMMAND PERFORMED" in f[i] or "COMMAND:" in f[i] or "COMMAND PROCESSED" in f[i]:
+                if "TRIP_ONE IS" in f[i] or "TRIP_TWO IS" in f[i] or "COMMAND PERFORMED" in f[i] or "COMMAND:" in f[i] or "COMMAND PROCESSED" in f[i] or "ПРИКАЗ:" in f[i] or "TRIP_ONE:" in f[i] or "TRIP_TWO:" in f[i]:
                     indexes.append(i)
             indexes.append(len(f))
-            
-            f_lists=[]
-            for i in range(len(indexes)-1):
-                f_lists.append(f[indexes[i]:indexes[i+1]])
-            
-            report_lists=[]
+
+            f_lists = []
+            for i in range(len(indexes) - 1):
+                f_lists.append(f[indexes[i]:indexes[i + 1]])
+
+            report_lists = []
             for i in range(len(f_lists)):
-                if "TRIP_ONE IS" in f_lists[i][0] or "TRIP_TWO IS" in f_lists[i][0] or "COMMAND PERFORMED" in f_lists[i][0]:
-                    name_string=f_lists[i][0]
-                    
-                    index_end_list=[]
-                    for k in range(len(f_lists[i])-1):
-                        if "STEP=" in f_lists[i][k+1] and "TIME=" in f_lists[i][k+1]:
+                if "TRIP_ONE IS" in f_lists[i][0] or "TRIP_TWO IS" in f_lists[i][0] or "COMMAND PERFORMED" in f_lists[i][0] or "ВЫПОЛНЕН ПРИКАЗ:" in f_lists[i][0] or "TRIP_ONE:" in f_lists[i][0] or "TRIP_TWO:" in f_lists[i][0]:
+                    name_string = f_lists[i][0]
+
+                    index_end_list = []
+                    for k in range(len(f_lists[i]) - 1):
+                        if ("STEP=" in f_lists[i][k + 1] or "ШАГ=" in f_lists[i][k + 1]) and (
+                                "TIME=" in f_lists[i][k + 1] or "ВРЕМЯ=" in f_lists[i][k + 1]):
                             index_end_list.append(k)
-                    index_end=index_end_list[0]
-                    
-                    condition_string="".join(f_lists[i][1:index_end+1]).strip()
-                    time_string=f_lists[i][index_end+1]
-                    report_lists.append([name_string,condition_string,time_string])
-            
-            list_for_pandas=[]
+                    index_end = index_end_list[0]
+
+                    condition_string = "".join(f_lists[i][1:index_end + 1]).strip()
+                    time_string = f_lists[i][index_end + 1]
+                    report_lists.append([name_string, condition_string, time_string])
+
+            list_for_pandas = []
             for event in report_lists:
-                time_for_pandas=float(event[2].split("TIME=")[-1])
-                name_for_pandas=event[0].split(":")[-1].split()[0]
-                
-                if "TRIP_ONE IS OFF" in event[0] or "TRIP_TWO IS OFF" in event[0]:
-                    state_for_pandas=False
+                if "ВРЕМЯ=" in event[2]:
+                    time_for_pandas = float(event[2].split("ВРЕМЯ=")[-1])
                 else:
-                    state_for_pandas=True
-                
+                    time_for_pandas = float(event[2].split("TIME=")[-1])
+                name_for_pandas = event[0].split(":")[-1].split()[0]
+
+                if "TRIP_ONE IS OFF" in event[0] or "TRIP_TWO IS OFF" in event[0] or "ВЫКЛЮЧЕН TRIP_ONE:" in event[
+                    0] or "ВЫКЛЮЧЕН TRIP_TWO:" in event[0]:
+                    state_for_pandas = False
+                else:
+                    state_for_pandas = True
+
                 if "TRIP_ONE" in event[0]:
-                    type_for_pandas="TRIP_ONE"
+                    type_for_pandas = "TRIP_ONE"
                 elif "TRIP_TWO" in event[0]:
-                    type_for_pandas="TRIP_TWO"
-                elif "COMMAND" in event[0]:
-                    type_for_pandas="COMMAND"
+                    type_for_pandas = "TRIP_TWO"
+                elif "COMMAND" in event[0] or "ПРИКАЗ" in event[0]:
+                    type_for_pandas = "COMMAND"
                 else:
-                    type_for_pandas=""
-                
+                    type_for_pandas = ""
+
                 if "DELAY:" in event[1]:
-                    delay_for_pandas=float(event[1].split("DELAY:")[-1])
+                    delay_for_pandas = float(event[1].split("DELAY:")[-1])
+                elif "ЗАДЕРЖКА ИСПОЛНЕНИЯ:" in event[1]:
+                    delay_for_pandas = float(event[1].split("ЗАДЕРЖКА ИСПОЛНЕНИЯ:")[-1])
                 else:
-                    delay_for_pandas=0
+                    delay_for_pandas = 0
                 if "CONDITION:" in event[1]:
-                    condition_for_pandas=event[1].split("CONDITION:")[-1].split("EXECUTION")[0]
+                    condition_for_pandas = event[1].split("CONDITION:")[-1].split("EXECUTION")[0]
+                elif "ПО УСЛОВИЮ:" in event[1]:
+                    condition_for_pandas = event[1].split("ПО УСЛОВИЮ:")[-1].split("ЗАДЕРЖКА ИСПОЛНЕНИЯ:")[0]
                 else:
-                    condition_for_pandas=""
+                    condition_for_pandas = ""
                 list_for_pandas.append([time_for_pandas,
                                         name_for_pandas,
                                         state_for_pandas,
                                         type_for_pandas,
                                         delay_for_pandas,
-                                        condition_for_pandas,])
-            return pandas.DataFrame(list_for_pandas,columns=["Time_report","Name_report", "ON_OFF_report","Type_report", "Delay_report", "Condition_report"])
+                                        condition_for_pandas, ])
+            return pandas.DataFrame(list_for_pandas,
+                                    columns=["Time_report", "Name_report", "ON_OFF_report", "Type_report",
+                                             "Delay_report", "Condition_report"])
 
-        
         #открываю папку RESULT
         os.chdir(path_to_folder)
         
@@ -530,35 +557,8 @@ class Socrat_calculation(Calculation):
                     self.data_dict["p1runout"]=pandas.read_table("p1runout", delim_whitespace=True)
                 if "p1spn" in os.listdir():
                     self.data_dict["p1spn"]=pandas.read_table("p1spn", delim_whitespace=True)
-
-        
-        #Проверка разницы между Time и TIME_a
-        if time_shift==None and "TIME_a" in dia_table:
-            time_shift=dia_table["Time"][0] - dia_table["TIME_a"][0]
-        
-        if time_shift!=0 and time_shift!=None:
-            self.time_shift_transform(time_shift)
         
         os.chdir(initial_dir)
-        
-    #метод для проверки параметров, которые если упали в 0, там и остаются (например температуры оболочек твэлов, СУЗов и топлива)
-    def last_zero_parameters_transform(self,names_last_zero_parameters):
-        if isinstance(names_last_zero_parameters,str):
-            names_last_zero_parameters=[names_last_zero_parameters]
-        for name_last_zero_parameter in names_last_zero_parameters:
-            if name_last_zero_parameter in self.data_dict["dia"].columns and min(self.data_dict["dia"][name_last_zero_parameter])<=0:
-                start_index=self.data_dict["dia"][self.data_dict["dia"][name_last_zero_parameter]<=0][name_last_zero_parameter].index[0]
-                self.data_dict["dia"][name_last_zero_parameter][start_index:]=0
-    
-    #метод для проверки параметров, которые не должны резко падать в ноль
-    def not_zero_parameters_transform(self,names_not_zero_parameters):
-        if isinstance(names_not_zero_parameters,str):
-            names_not_zero_parameters=[names_not_zero_parameters]
-        for name_not_zero_parameter in names_not_zero_parameters:
-            if name_not_zero_parameter in self.data_dict["dia"].columns and min(self.data_dict["dia"][name_not_zero_parameter])<=0:
-                for k in range(len(self.data_dict["dia"][name_not_zero_parameter])-1):
-                    if self.data_dict["dia"][name_not_zero_parameter][k+1]<=0:
-                        self.data_dict["dia"][name_not_zero_parameter][k+1]=self.data_dict["dia"][name_not_zero_parameter][k]
 
     #метод для получения dia_кластера
     def get_dia_cluster(self, cluster_name):
@@ -648,8 +648,9 @@ class Series_of_calculations:
             self.key_parameters_table=self.key_parameters_table.merge(calc_key_parameters,how="outer",on = "Description").fillna("–")
 
     
-    def graph (self, GrName, x_names, y_names, lablex="t, s", labley="", x1=None, y1=None, x2=None, y2=None, mult_x=None, mult_y=None, shift_x=None, shift_y=None, stpx=None, stpy=None):
-        
+    def graph (self, GrName, x_names, y_names, lablex="t, s", labley="", x1=None, y1=None, x2=None, y2=None, mult_x=None, mult_y=None, shift_x=None, shift_y=None, stpx=None, stpy=None, empty_graphs=True):
+        import numpy
+
         if isinstance(y_names, str):
             y_names=[y_names]
         if isinstance(x_names, str):
@@ -661,17 +662,28 @@ class Series_of_calculations:
         get_x=[]
         get_y=[]
 
-        print(x_names)
-        print(y_names)
 
         for calc in self.series:
             for i in range(len(y_names)):
                 get_x.append(calc.get_values(x_names[i]))
                 get_y.append(calc.get_values(y_names[i]))
-        
-        path_dict=graph(GrName, get_x, get_y, lablex=lablex, labley=labley, x1=x1, y1=y1, x2=x2, y2=y2, mult_x=mult_x, mult_y=mult_y, shift_x=shift_x, shift_y=shift_y, stpx=stpx, stpy=stpy)
-        
-        path_dict["x"]="_".join(x_names)
-        path_dict["y"]="_".join(y_names)
-        self.graph_list.append(path_dict)
+
+        draw_graph=True
+        None_list = [i is None for i in get_x + get_y]
+        if True in None_list:
+            draw_graph = False
+            print("Ошибка при построении графика " + GrName)
+
+        if draw_graph and (not empty_graphs):
+            empty_list = [numpy.all(y == y[0]) for y in get_y]
+            if False not in empty_list:
+                draw_graph = False
+                print("График {} пустой".format(GrName))
+
+        if draw_graph:
+            path_dict=graph(GrName, get_x, get_y, lablex=lablex, labley=labley, x1=x1, y1=y1, x2=x2, y2=y2, mult_x=mult_x, mult_y=mult_y, shift_x=shift_x, shift_y=shift_y, stpx=stpx, stpy=stpy)
+
+            path_dict["x"]="_".join(x_names)
+            path_dict["y"]="_".join(y_names)
+            self.graph_list.append(path_dict)
 

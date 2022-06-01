@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>952</width>
-    <height>765</height>
+    <width>895</width>
+    <height>802</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>favicon2.ico</normaloff>favicon2.ico</iconset>
+    <normaloff>icon.ico</normaloff>icon.ico</iconset>
   </property>
   <widget class="QWidget" name="widget">
    <property name="enabled">
@@ -417,72 +417,61 @@
          <attribute name="title">
           <string>Обработка</string>
          </attribute>
-         <layout class="QVBoxLayout" name="verticalLayout_11">
+         <layout class="QVBoxLayout" name="verticalLayout_8">
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_6">
+           <layout class="QVBoxLayout" name="verticalLayout_7">
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_7">
+             <layout class="QHBoxLayout" name="horizontalLayout_26">
               <item>
-               <widget class="QLabel" name="label_4">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Параметры, которые если упали в 0, не увеличиваются</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="line_always_zero_parameters"/>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_8">
-              <item>
-               <widget class="QLabel" name="label_3">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Параметры, которые не должны падать в 0</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="line_not_zero_parameters"/>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_18">
-              <item>
-               <widget class="QTreeWidget" name="treeWidget_corrected_parameters">
-                <column>
-                 <property name="text">
-                  <string>Название</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Множитель</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Смещение</string>
-                 </property>
-                </column>
-               </widget>
+               <layout class="QVBoxLayout" name="verticalLayout_6">
+                <item>
+                 <widget class="QTreeWidget" name="treeWidget_corrected_parameters">
+                  <column>
+                   <property name="text">
+                    <string>Название параметра</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Дополнительные операции</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Выражение</string>
+                   </property>
+                  </column>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_18">
+                  <item>
+                   <widget class="QPushButton" name="button_up_correcting">
+                    <property name="text">
+                     <string>Вверх</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="button_down_correcting">
+                    <property name="text">
+                     <string>Вниз</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
               </item>
               <item>
                <layout class="QVBoxLayout" name="verticalLayout">
+                <item>
+                 <widget class="QLabel" name="label_4">
+                  <property name="text">
+                   <string>Корректируемый параметр</string>
+                  </property>
+                 </widget>
+                </item>
                 <item>
                  <widget class="QLineEdit" name="line_corrected_parameters_name">
                   <property name="sizePolicy">
@@ -497,28 +486,56 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="line_corrected_parameters_mult">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="placeholderText">
-                   <string>Множитель</string>
+                 <widget class="QLabel" name="label_23">
+                  <property name="text">
+                   <string>Дополнительные операции</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="line_corrected_parameters_shift">
+                 <widget class="QRadioButton" name="radioButton_gradient">
+                  <property name="text">
+                   <string>Дифференцирование</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="radioButton_integral">
+                  <property name="text">
+                   <string>Интегрирование</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="radioButton_no_extra_operations">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="text">
+                   <string>Без дополнительных операций</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                  <property name="autoRepeat">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_3">
+                  <property name="text">
+                   <string>Выражение</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QTextEdit" name="text_edit_correcting_expression">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
-                  </property>
-                  <property name="placeholderText">
-                   <string>Смещение</string>
                   </property>
                  </widget>
                 </item>
@@ -526,25 +543,6 @@
                  <widget class="QPushButton" name="button_corrected_parameters_add">
                   <property name="text">
                    <string>Добавить</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QFrame" name="frame">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="frameShape">
-                   <enum>QFrame::NoFrame</enum>
-                  </property>
-                  <property name="frameShadow">
-                   <enum>QFrame::Raised</enum>
-                  </property>
-                  <property name="lineWidth">
-                   <number>0</number>
                   </property>
                  </widget>
                 </item>
@@ -617,7 +615,7 @@
                      <set>QAbstractItemView::DoubleClicked</set>
                     </property>
                     <property name="selectionMode">
-                     <enum>QAbstractItemView::MultiSelection</enum>
+                     <enum>QAbstractItemView::SingleSelection</enum>
                     </property>
                     <column>
                      <property name="text">
@@ -710,8 +708,11 @@
                  <layout class="QVBoxLayout" name="verticalLayout_22">
                   <item>
                    <widget class="QTreeWidget" name="treeWidget_graphs_multy">
+                    <property name="editTriggers">
+                     <set>QAbstractItemView::DoubleClicked</set>
+                    </property>
                     <property name="selectionMode">
-                     <enum>QAbstractItemView::MultiSelection</enum>
+                     <enum>QAbstractItemView::SingleSelection</enum>
                     </property>
                     <column>
                      <property name="text">
@@ -1249,7 +1250,7 @@
               <item>
                <widget class="QTreeWidget" name="treeWidget_chrono_single">
                 <property name="selectionMode">
-                 <enum>QAbstractItemView::MultiSelection</enum>
+                 <enum>QAbstractItemView::SingleSelection</enum>
                 </property>
                 <column>
                  <property name="text">
@@ -1288,7 +1289,7 @@
               <item>
                <widget class="QTreeWidget" name="treeWidget_chrono_multy">
                 <property name="selectionMode">
-                 <enum>QAbstractItemView::MultiSelection</enum>
+                 <enum>QAbstractItemView::SingleSelection</enum>
                 </property>
                 <column>
                  <property name="text">
@@ -1526,7 +1527,7 @@
                 <item>
                  <widget class="QTreeWidget" name="treeWidget_key_parameters_single">
                   <property name="selectionMode">
-                   <enum>QAbstractItemView::MultiSelection</enum>
+                   <enum>QAbstractItemView::SingleSelection</enum>
                   </property>
                   <column>
                    <property name="text">
@@ -1570,7 +1571,7 @@
                 <item>
                  <widget class="QTreeWidget" name="treeWidget_key_parameters_multy">
                   <property name="selectionMode">
-                   <enum>QAbstractItemView::MultiSelection</enum>
+                   <enum>QAbstractItemView::SingleSelection</enum>
                   </property>
                   <column>
                    <property name="text">
@@ -1957,9 +1958,29 @@
            </layout>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_round">
+           <widget class="QCheckBox" name="checkBox_round_chrono">
             <property name="text">
-             <string>Округлять значения в таблицах</string>
+             <string>Округлять значения в хронологии</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBox_round_key_parameters">
+            <property name="text">
+             <string>Округлять значения ключевых параметров</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBox_empty_graphs">
+            <property name="text">
+             <string>Рисовать пустые графики</string>
             </property>
             <property name="checked">
              <bool>true</bool>

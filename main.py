@@ -4,13 +4,16 @@ import pickle
 import docx
 import json
 
-from PySide6.QtWidgets import QFileDialog
+from PySide6.QtWidgets import QFileDialog, QDialog
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QTreeWidgetItem
 
 from ui_main_window import Ui_MainWindow
 from socrat_eye import Socrat_calculation, Trap_calculation, Series_of_calculations
-
+from graphs_edit_window import Ui_Dialog_graphs_edit
+from chrono_edit_window import Ui_Dialog_chrono_edit
+from key_parameters_edit_window import Ui_Dialog_key_parameters_edit
+from correcting_edit_window import Ui_Dialog_correcting_edit
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -43,29 +46,38 @@ class MainWindow(QMainWindow):
         # Подключение кнопок для сброса и удаления расчётов
         self.ui.button_reset_data.clicked.connect(lambda: self.ui.treeWidget_calculations.clear())
         self.ui.button_del_chosen_data.clicked.connect(
-            lambda: self.del_chosen_elements(self.ui.treeWidget_calculations))
+            lambda: self.del_selected_elements(self.ui.treeWidget_calculations))
 
         # Вкладка Обработка
         # Подключение кнопок для добавления параметров
-        self.ui.button_corrected_parameters_add.clicked.connect(self.add_coorected_parameter)
+        self.ui.button_corrected_parameters_add.clicked.connect(self.add_corected_parameter)
         # Подключение кнопок для сброса и удаления параметров
         self.ui.button_corrected_parameters_reset.clicked.connect(
             lambda: self.ui.treeWidget_corrected_parameters.clear())
         self.ui.button_corrected_parameters_del.clicked.connect(
-            lambda: self.del_chosen_elements(self.ui.treeWidget_corrected_parameters))
+            lambda: self.del_selected_elements(self.ui.treeWidget_corrected_parameters))
 
         self.ui.button_export_cfg.clicked.connect(self.save_cfg)
         self.ui.button_import_cfg.clicked.connect(self.open_sfg)
+        # Редактирование при двойном клике
+        self.ui.treeWidget_corrected_parameters.itemDoubleClicked.connect(self.edit_correcting)
+
+        # Перемещение вверх и вниз
+        self.ui.button_up_correcting.clicked.connect(lambda : self.move_selected_up(self.ui.treeWidget_corrected_parameters))
+        self.ui.button_down_correcting.clicked.connect(lambda: self.move_selected_down(self.ui.treeWidget_corrected_parameters))
 
         # Вкладка Графики
         # Подключение кнопок для добавления графиков
         self.ui.button_graphs_add.clicked.connect(self.add_graph)
         # Подключение кнопок для сброса и удаления графиков
         self.ui.button_reset_graphs.clicked.connect(lambda: self.get_tree_graphs().clear())
-        self.ui.button_del_chosen_graphs.clicked.connect(self.del_chosen_graphs)
+        self.ui.button_del_chosen_graphs.clicked.connect(self.del_selected_graphs)
         # Подключение кнопок для перемещения графиков
-        self.ui.button_up_graphs.clicked.connect(self.move_up_chosen_graphs)
-        self.ui.button_down_graphs.clicked.connect(self.move_down_chosen_graphs)
+        self.ui.button_up_graphs.clicked.connect(self.move_up_selected_graphs)
+        self.ui.button_down_graphs.clicked.connect(self.move_down_selected_graphs)
+        # Редактирование при двойном клике
+        self.ui.treeWidget_graphs_single.itemDoubleClicked.connect(self.edit_graph)
+        self.ui.treeWidget_graphs_multy.itemDoubleClicked.connect(self.edit_graph)
 
         # Вкладка Хронология
         # Подключение кнопок для добавления события
@@ -73,7 +85,10 @@ class MainWindow(QMainWindow):
         # Подключение кнопок для сброса и удаления событий
         self.ui.button_reset_chrono_parameters.clicked.connect(lambda: self.get_tree_chrono().clear())
         self.ui.button_del_chosen_chrono_parameters.clicked.connect(
-            lambda: self.del_chosen_elements(self.get_tree_chrono()))
+            lambda: self.del_selected_elements(self.get_tree_chrono()))
+        # Редактирование при двойном клике
+        self.ui.treeWidget_chrono_single.itemDoubleClicked.connect(self.edit_chrono)
+        self.ui.treeWidget_chrono_multy.itemDoubleClicked.connect(self.edit_chrono)
 
         # Вкладка Ключевые параметры
         # Подключение кнопок для добавления ключевых параметров
@@ -81,18 +96,42 @@ class MainWindow(QMainWindow):
         # Подключение кнопок для сброса и удаления ключевых параметров
         self.ui.button_reset_key_parameters.clicked.connect(lambda: self.get_tree_key_parameters().clear())
         self.ui.button_del_chosen_key_parameters.clicked.connect(
-            lambda: self.del_chosen_elements(self.get_tree_key_parameters()))
+            lambda: self.del_selected_elements(self.get_tree_key_parameters()))
         # Подключение кнопок для перемещения ключевых параметров
-        self.ui.button_up_key_parameters.clicked.connect(self.move_up_chosen_key_parameters)
-        self.ui.button_down_key_parameters.clicked.connect(self.move_down_chosen_key_parameters)
+        self.ui.button_up_key_parameters.clicked.connect(self.move_up_selected_key_parameters)
+        self.ui.button_down_key_parameters.clicked.connect(self.move_down_selected_key_parameters)
+        # Редактирование при двойном клике
+        self.ui.treeWidget_key_parameters_single.itemDoubleClicked.connect(self.edit_key_parameter)
+        self.ui.treeWidget_key_parameters_multy.itemDoubleClicked.connect(self.edit_key_parameter)
 
     # методы для общих кнопок
     # метод для удаления выбранных полей
-    def del_chosen_elements(self, tree):
-        chosen_items = tree.selectedItems()
-        for item in chosen_items:
+    def del_selected_elements(self, tree):
+        selected_items = tree.selectedItems()
+        for item in selected_items:
             index = tree.indexOfTopLevelItem(item)
             tree.takeTopLevelItem(index)
+
+    # метод для перемещения элемента вверх
+    def move_selected_up(self, tree):
+        selected_items = tree.selectedItems()
+        if len(selected_items) > 0:
+            selected_index = tree.indexOfTopLevelItem(selected_items[0])
+            if selected_index > 0:
+                tree.takeTopLevelItem(selected_index)
+                tree.insertTopLevelItem(selected_index - 1, selected_items[0])
+                tree.clearSelection()
+                tree.topLevelItem(selected_index - 1).setSelected(True)
+    # метод для перемещения элемента вниз
+    def move_selected_down(self, tree):
+        selected_items = tree.selectedItems()
+        if len(selected_items) > 0:
+            selected_index = tree.indexOfTopLevelItem(selected_items[0])
+            if selected_index < tree.topLevelItemCount() - 1:
+                tree.takeTopLevelItem(selected_index)
+                tree.insertTopLevelItem(selected_index + 1, selected_items[0])
+                tree.clearSelection()
+                tree.topLevelItem(selected_index + 1).setSelected(True)
 
     # Вкладка Данные
     # методы для открытия файлов и папок
@@ -141,29 +180,30 @@ class MainWindow(QMainWindow):
 
     # Вкладка Обработка
     # метод для добавления параметров
-    def add_coorected_parameter(self):
+    def add_corected_parameter(self):
         name = self.ui.line_corrected_parameters_name.text()
-        mult = self.ui.line_corrected_parameters_mult.text()
-        shift = self.ui.line_corrected_parameters_shift.text()
-        if len(self.ui.treeWidget_corrected_parameters.findItems(name, Qt.MatchFlag.MatchExactly)) == 0:
-            if name != "":
-                item = QTreeWidgetItem([name, mult, shift])
+        extra_operations=""
+        if self.ui.radioButton_gradient.isChecked():
+            extra_operations = self.ui.radioButton_gradient.text()
+        elif self.ui.radioButton_integral.isChecked():
+            extra_operations = self.ui.radioButton_integral.text()
+        expression = self.ui.text_edit_correcting_expression.toPlainText()
+        if name != "":
+            if expression!="":
+                item = QTreeWidgetItem([name, extra_operations, expression])
                 self.ui.treeWidget_corrected_parameters.addTopLevelItem(item)
 
                 self.ui.line_corrected_parameters_name.setText("")
-                self.ui.line_corrected_parameters_mult.setText("")
-                self.ui.line_corrected_parameters_shift.setText("")
+                self.ui.text_edit_correcting_expression.setText("")
             else:
-                print("Введено пустое имя")
+                print("Введено пустое выражение")
         else:
-            print("Такой параметр уже существует")
+            print("Введено пустое имя")
 
     def save_cfg(self):
         config_dict={}
         # Вкладка Обработка
         config_dict["Correcting"]={}
-        config_dict["Correcting"]["always_zero_parameters"]=self.ui.line_always_zero_parameters.text()
-        config_dict["Correcting"]["not_zero_parameters"] = self.ui.line_not_zero_parameters.text()
 
         config_dict["Correcting"]["Items"]=[]
         for i in range(self.ui.treeWidget_corrected_parameters.topLevelItemCount()):
@@ -225,8 +265,6 @@ class MainWindow(QMainWindow):
             with open(path, encoding="utf8") as json_file:
                 config_dict=json.load(json_file)
 
-            self.ui.line_not_zero_parameters.setText(config_dict["Correcting"]["not_zero_parameters"])
-            self.ui.line_always_zero_parameters.setText(config_dict["Correcting"]["always_zero_parameters"])
 
             # Корректируемые параметры
             self.ui.treeWidget_corrected_parameters.clear()
@@ -267,6 +305,10 @@ class MainWindow(QMainWindow):
                 item = QTreeWidgetItem(cfg_columns)
                 self.ui.treeWidget_key_parameters_multy.addTopLevelItem(item)
 
+    # метод для редактирования корректируемого параметра
+    def edit_correcting(self, item, column):
+        dlg = CorrectingEditDlg(item)
+        dlg.exec()
     # Вкладка Графики
     # Метод для выбора дерева графиков
     def get_tree_graphs(self):
@@ -326,44 +368,29 @@ class MainWindow(QMainWindow):
             tree.addTopLevelItem(item)
 
     # метод для удаления выбранных графиков
-    def del_chosen_graphs(self):
+    def del_selected_graphs(self):
         tree = self.get_tree_graphs()
         if tree is not None:
-            self.del_chosen_elements(tree)
+            self.del_selected_elements(tree)
             self.reset_index_graphs()
 
-    # метод для перемещения грфика вверх
-    def move_up_chosen_graphs(self):
+    # метод для перемещения графика вверх
+    def move_up_selected_graphs(self):
         tree = self.get_tree_graphs()
         if tree is not None:
-            chosen_items_old = tree.selectedItems()
-            chosen_indexies_old = [tree.indexOfTopLevelItem(i) for i in chosen_items_old]
-            if min(chosen_indexies_old) > 0:
-                tree.clearSelection()
-                for old_index in chosen_indexies_old:
-                    item = tree.takeTopLevelItem(old_index)
-                    tree.insertTopLevelItem(old_index - 1, item)
-                select_indexies = [tree.indexOfTopLevelItem(i) for i in chosen_items_old]
-                self.reset_index_graphs()
-                for index in select_indexies:
-                    tree.topLevelItem(index).setSelected(True)
+            self.move_selected_up(tree)
+            self.reset_index_graphs()
 
-    # метод для перемещения грфика вниз
-    def move_down_chosen_graphs(self):
+    # метод для перемещения графика вниз
+    def move_down_selected_graphs(self):
         tree = self.get_tree_graphs()
         if tree is not None:
-            chosen_items_old = tree.selectedItems()
-            chosen_indexies_old = [tree.indexOfTopLevelItem(i) for i in chosen_items_old]
-            if max(chosen_indexies_old) < tree.topLevelItemCount() - 1:
-                chosen_indexies_old.reverse()
-                tree.clearSelection()
-                for old_index in chosen_indexies_old:
-                    item = tree.takeTopLevelItem(old_index)
-                    tree.insertTopLevelItem(old_index + 1, item)
-                select_indexies = [tree.indexOfTopLevelItem(i) for i in chosen_items_old]
-                self.reset_index_graphs()
-                for index in select_indexies:
-                    tree.topLevelItem(index).setSelected(True)
+            self.move_selected_down(tree)
+            self.reset_index_graphs()
+    # метод для редактирования графика
+    def edit_graph(self, item, column):
+        dlg=GraphEditDlg(item)
+        dlg.exec()
 
     # Вкладка Хронология
     # Метод для выбора дерева хронологий
@@ -406,6 +433,11 @@ class MainWindow(QMainWindow):
                 self.ui.line_cut_down_chrono_value.setText("")
                 self.ui.line_cut_up_chrono_name.setText("")
                 self.ui.line_cut_up_chrono_value.setText("")
+
+    # метод для редактирования хронологии
+    def edit_chrono(self, item, column):
+        dlg=ChronoEditDlg(item)
+        dlg.exec()
 
     # Вкладка Ключевые параметры
     # Метод для выбора дерева ключевых параметров
@@ -456,38 +488,22 @@ class MainWindow(QMainWindow):
                 self.ui.line_cut_up_key_parameters_name.setText("")
                 self.ui.line_cut_up_key_parameters_value.setText("")
 
-    # метод для перемещения графика вверх
-    def move_up_chosen_key_parameters(self):
+    # метод для перемещения ключевого параметра вверх
+    def move_up_selected_key_parameters(self):
         tree = self.get_tree_key_parameters()
         if tree is not None:
-            chosen_items_old = tree.selectedItems()
-            chosen_indexies_old = [tree.indexOfTopLevelItem(i) for i in chosen_items_old]
-            if min(chosen_indexies_old) > 0:
-                tree.clearSelection()
-                for old_index in chosen_indexies_old:
-                    item = tree.takeTopLevelItem(old_index)
-                    tree.insertTopLevelItem(old_index - 1, item)
-                select_indexies = [tree.indexOfTopLevelItem(i) for i in chosen_items_old]
-                for index in select_indexies:
-                    tree.topLevelItem(index).setSelected(True)
+            self.move_selected_up(tree)
 
-    # метод для перемещения грфика вниз
-    def move_down_chosen_key_parameters(self):
+    # метод для перемещения ключевого параметра вниз
+    def move_down_selected_key_parameters(self):
         tree = self.get_tree_key_parameters()
         if tree is not None:
-            chosen_items_old = tree.selectedItems()
-            chosen_indexies_old = [tree.indexOfTopLevelItem(i) for i in chosen_items_old]
-            if max(chosen_indexies_old) < tree.topLevelItemCount() - 1:
-                chosen_indexies_old.reverse()
-                tree.clearSelection()
-                for old_index in chosen_indexies_old:
-                    item = tree.takeTopLevelItem(old_index)
-                    tree.insertTopLevelItem(old_index + 1, item)
-                select_indexies = [tree.indexOfTopLevelItem(i) for i in chosen_items_old]
-                for index in select_indexies:
-                    tree.topLevelItem(index).setSelected(True)
+            self.move_selected_down(tree)
 
-
+    # метод для редактирования ключевого параметра
+    def edit_key_parameter(self, item, column):
+        dlg=KeyParametersEditDlg(item)
+        dlg.exec()
 
     # метод для предварительной загрузки
     def pre_run(self):
@@ -577,36 +593,38 @@ class MainWindow(QMainWindow):
                     search_value = None
             return search_value
 
-        # функция для округления ключевых и хронологических чисел
-        def round_chrono_key(value):
+        # функции для округления ключевых и хронологических чисел
+        def round_chrono(value):
             abs_value = abs(value)
             if abs_value < 1:
                 return round(value, 2)
             elif abs_value < 10:
                 return round(value, 1)
-            elif abs_value < 1000:
-                return int(round(value, 0))
             elif abs_value < 10000:
+                return int(round(value, 0))
+            elif abs_value < 100000:
                 return int(round(value, -1))
             else:
                 return int(round(value, -2))
+        def round_key(value):
+            abs_value = abs(value)
+            if abs_value < 100:
+                return round(value, 1)
+            else:
+                return round(value, 0)
 
         # Предварительная загрузка:
         self.pre_run()
 
         # Получение параметров с вкладки Обработка
-        always_zero_parameters = self.ui.line_always_zero_parameters.text().split(";")
-        not_zero_parameters = self.ui.line_not_zero_parameters.text().split(";")
         corrected_parameters = []
-        corrected_parameters_columns = ["name", "mult", "shift"]
+        corrected_parameters_columns = ["name", "extra_operations", "expression"]
         for item_index in range(self.ui.treeWidget_corrected_parameters.topLevelItemCount()):
             item = self.ui.treeWidget_corrected_parameters.topLevelItem(item_index)
             item_dict = {}
             item_values = [item.text(columns_index) for columns_index in range(item.columnCount())]
             for column, value in zip(corrected_parameters_columns, item_values):
                 item_dict[column] = value
-            for number_name in ("mult", "shift"):
-                item_dict[number_name] = str_to_number(item_dict[number_name])
 
             corrected_parameters.append(item_dict)
 
@@ -725,7 +743,8 @@ class MainWindow(QMainWindow):
             font_value = 12
         else:
             font_value = float(font_value)
-        check_round = self.ui.checkBox_round.checkState()
+        check_round_chrono = self.ui.checkBox_round_chrono.checkState()
+        check_round_key_parameters = self.ui.checkBox_round_key_parameters.checkState()
 
         # Открытие папки для сохранения
         if len(path_save) == 0:
@@ -748,14 +767,16 @@ class MainWindow(QMainWindow):
                 calc.save(name=calculation["name"])
 
             # Корректировка
-            # Специфика СОКРАТа
-            if isinstance(calc, Socrat_calculation):
-                calc.last_zero_parameters_transform(always_zero_parameters)
-                calc.not_zero_parameters_transform(not_zero_parameters)
-            # Умножене и смещение
             for corrected_parameter in corrected_parameters:
-                calc.values_mult_shift(corrected_parameter["name"], mult=corrected_parameter["mult"],
-                                       shift=corrected_parameter["shift"])
+                integral = False
+                derivative = False
+                if corrected_parameter["extra_operations"]==self.ui.radioButton_integral.text():
+                    integral=True
+                elif corrected_parameter["extra_operations"]==self.ui.radioButton_gradient.text():
+                    derivative = True
+
+                calc.correcting_parameters(corrected_parameter["name"], corrected_parameter["expression"],
+                                       integral=integral, derivative=derivative)
 
 
 
@@ -781,16 +802,18 @@ class MainWindow(QMainWindow):
                                shift_x=graph_single["x_shift"],
                                shift_y=graph_single["y_shift"],
                                stpx=graph_single["x_step"],
-                               stpy=graph_single["y_step"], )
+                               stpy=graph_single["y_step"],
+                               empty_graphs=self.ui.checkBox_empty_graphs.isChecked())
 
             # Построение хронологий и ключевых параметров Single
             calc.make_chrono(chrono_single)
             calc.make_key_table(key_parameters_single)
 
             # Округление Single
-            if check_round:
-                calc.chrono_table["Time"] = calc.chrono_table["Time"].apply(round_chrono_key)
-                calc.key_parameters_table["Value"] = calc.key_parameters_table["Value"].apply(round_chrono_key)
+            if check_round_chrono:
+                calc.chrono_table["Time"] = calc.chrono_table["Time"].apply(round_chrono)
+            if check_round_key_parameters:
+                calc.key_parameters_table["Value"] = calc.key_parameters_table["Value"].apply(round_key)
 
             # Возврат в корневую папку
             os.chdir(path_save)
@@ -842,9 +865,10 @@ class MainWindow(QMainWindow):
             calc.make_key_table(key_parameters_multy)
 
             # Округление Multy
-            if check_round:
-                calc.chrono_table["Time"] = calc.chrono_table["Time"].apply(round_chrono_key)
-                calc.key_parameters_table["Value"] = calc.key_parameters_table["Value"].apply(round_chrono_key)
+            if check_round_chrono:
+                calc.chrono_table["Time"] = calc.chrono_table["Time"].apply(round_chrono)
+            if check_round_key_parameters:
+                calc.key_parameters_table["Value"] = calc.key_parameters_table["Value"].apply(round_key)
 
             calculations_list.append(calc)
 
@@ -872,7 +896,8 @@ class MainWindow(QMainWindow):
                                          shift_x=graph_multy["x_shift"],
                                          shift_y=graph_multy["y_shift"],
                                          stpx=graph_multy["x_step"],
-                                         stpy=graph_multy["y_step"], )
+                                         stpy=graph_multy["y_step"],
+                                         empty_graphs=self.ui.checkBox_empty_graphs.isChecked())
 
         # Возврат в корневую папку
         os.chdir(path_save)
@@ -926,6 +951,124 @@ class MainWindow(QMainWindow):
         if len(calculation_series.graph_list) > 0 or len(calculation_series.key_parameters_table) or len(calculation_series.chrono_table) > 0:
             doc.save(file_save_name + ".docx")
         print("\n\n\nГотово")
+
+class GraphEditDlg(Ui_Dialog_graphs_edit, QDialog):
+    def __init__(self, item, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+        self.item=item
+        self.line_graphs_y_names.setText(item.text(1))
+        self.line_graphs_x_names.setText(item.text(2))
+        self.line_graphs_y_label.setText(item.text(3))
+        self.line_graphs_x_label.setText(item.text(4))
+        self.line_graphs_y_min.setText(item.text(5))
+        self.line_graphs_y_max.setText(item.text(6))
+        self.line_graphs_x_min.setText(item.text(7))
+        self.line_graphs_x_max.setText(item.text(8))
+        self.line_graphs_y_mult.setText(item.text(9))
+        self.line_graphs_y_shift.setText(item.text(10))
+        self.line_graphs_x_mult.setText(item.text(11))
+        self.line_graphs_x_shift.setText(item.text(12))
+        self.line_graphs_y_step.setText(item.text(13))
+        self.line_graphs_x_step.setText(item.text(14))
+        self.text_edit_graphs_description.setText(item.text(15))
+
+        self.buttonBox.accepted.connect(self.save_changes)
+
+    def save_changes(self):
+        self.item.setText(1, self.line_graphs_y_names.text())
+        self.item.setText(2, self.line_graphs_x_names.text())
+        self.item.setText(3, self.line_graphs_y_label.text())
+        self.item.setText(4, self.line_graphs_x_label.text())
+        self.item.setText(5, self.line_graphs_y_min.text())
+        self.item.setText(6, self.line_graphs_y_max.text())
+        self.item.setText(7, self.line_graphs_x_min.text())
+        self.item.setText(8, self.line_graphs_x_max.text())
+        self.item.setText(9, self.line_graphs_y_mult.text())
+        self.item.setText(10, self.line_graphs_y_shift.text())
+        self.item.setText(11, self.line_graphs_x_mult.text())
+        self.item.setText(12, self.line_graphs_x_shift.text())
+        self.item.setText(13, self.line_graphs_y_step.text())
+        self.item.setText(14, self.line_graphs_x_step.text())
+        self.item.setText(15, self.text_edit_graphs_description.toPlainText())
+class ChronoEditDlg(Ui_Dialog_chrono_edit, QDialog):
+    def __init__(self, item, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+        self.item=item
+
+
+        self.line_chrono_parameter_name.setText(item.text(0))
+        self.line_chrono_parameter_value.setText(item.text(1))
+        self.line_cut_down_chrono_name.setText(item.text(2).split(";")[0])
+        self.line_cut_down_chrono_value.setText(item.text(2).split(";")[1])
+        self.line_cut_up_chrono_name.setText(item.text(3).split(";")[0])
+        self.line_cut_up_chrono_value.setText(item.text(3).split(";")[1])
+
+        self.text_edit_chrono_description.setText(item.text(4))
+
+        self.buttonBox.accepted.connect(self.save_changes)
+
+    def save_changes(self):
+        self.item.setText(0, self.line_chrono_parameter_name.text())
+        self.item.setText(1, self.line_chrono_parameter_value.text())
+        self.item.setText(2, ";".join([self.line_cut_down_chrono_name.text(),self.line_cut_down_chrono_value.text()]))
+        self.item.setText(3, ";".join([self.line_cut_up_chrono_name.text(), self.line_cut_up_chrono_value.text()]))
+        self.item.setText(4, self.text_edit_chrono_description.toPlainText())
+class KeyParametersEditDlg(Ui_Dialog_key_parameters_edit, QDialog):
+    def __init__(self, item, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+        self.item=item
+
+        self.line_key_parameter_name.setText(item.text(0))
+        self.line_search_parameter_name.setText(item.text(1))
+        self.line_search_parameter_value.setText(item.text(2))
+        self.line_cut_down_key_parameters_name.setText(item.text(3).split(";")[0])
+        self.line_cut_down_key_parameters_value.setText(item.text(3).split(";")[1])
+        self.line_cut_up_key_parameters_name.setText(item.text(4).split(";")[0])
+        self.line_cut_up_key_parameters_value.setText(item.text(4).split(";")[1])
+
+        self.text_edit_key_parameters_description.setText(item.text(5))
+
+        self.buttonBox.accepted.connect(self.save_changes)
+
+    def save_changes(self):
+        self.item.setText(0, self.line_key_parameter_name.text())
+        self.item.setText(1, self.line_search_parameter_name.text())
+        self.item.setText(2, self.line_search_parameter_value.text())
+        self.item.setText(3, ";".join([self.line_cut_down_key_parameters_name.text(),self.line_cut_down_key_parameters_value.text()]))
+        self.item.setText(4, ";".join([self.line_cut_up_key_parameters_name.text(), self.line_cut_up_key_parameters_value.text()]))
+        self.item.setText(5, self.text_edit_key_parameters_description.toPlainText())
+class CorrectingEditDlg(Ui_Dialog_correcting_edit, QDialog):
+    def __init__(self, item, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+        self.item=item
+
+
+        self.line_corrected_parameters_name.setText(item.text(0))
+        if item.text(1)==self.radioButton_gradient.text():
+            self.radioButton_gradient.setChecked(True)
+            print("ГРАДИЕНТ")
+        elif item.text(1) == self.radioButton_integral.text():
+            self.radioButton_integral.setChecked(True)
+        else:
+            self.radioButton_no_extra_operations.setChecked(True)
+        self.text_edit_correcting_expression.setText(item.text(2))
+
+        self.buttonBox.accepted.connect(self.save_changes)
+
+    def save_changes(self):
+        self.item.setText(0, self.line_corrected_parameters_name.text())
+        if self.radioButton_gradient.isChecked():
+            self.item.setText(1, self.radioButton_gradient.text())
+        elif self.radioButton_integral.isChecked():
+            self.item.setText(1, self.radioButton_integral.text())
+        else:
+            self.item.setText(1, "")
+        self.item.setText(2, self.text_edit_correcting_expression.toPlainText())
+
 
 if __name__ == '__main__':
     app = QApplication()

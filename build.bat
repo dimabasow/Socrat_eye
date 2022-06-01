@@ -1,0 +1,1 @@
+pyinstaller --icon=icon.ico --add-data "icon.ico;." --name "Socrat EYE" main.py 
