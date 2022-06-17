@@ -37,15 +37,17 @@ class Ui_MainWindow(object):
         self.verticalLayout_21.setObjectName(u"verticalLayout_21")
         self.verticalLayout_2 = QVBoxLayout()
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.tabWidget = QTabWidget(self.widget)
-        self.tabWidget.setObjectName(u"tabWidget")
-        self.tabWidget.setTabPosition(QTabWidget.North)
+        self.tabWidget_main = QTabWidget(self.widget)
+        self.tabWidget_main.setObjectName(u"tabWidget_main")
+        self.tabWidget_main.setTabPosition(QTabWidget.North)
         self.tab_data = QWidget()
         self.tab_data.setObjectName(u"tab_data")
-        self.horizontalLayout_22 = QHBoxLayout(self.tab_data)
+        self.verticalLayout_38 = QVBoxLayout(self.tab_data)
+        self.verticalLayout_38.setObjectName(u"verticalLayout_38")
+        self.horizontalLayout_22 = QHBoxLayout()
         self.horizontalLayout_22.setObjectName(u"horizontalLayout_22")
-        self.horizontalLayout_21 = QHBoxLayout()
-        self.horizontalLayout_21.setObjectName(u"horizontalLayout_21")
+        self.verticalLayout_11 = QVBoxLayout()
+        self.verticalLayout_11.setObjectName(u"verticalLayout_11")
         self.treeWidget_calculations = QTreeWidget(self.tab_data)
         self.treeWidget_calculations.setObjectName(u"treeWidget_calculations")
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -56,7 +58,7 @@ class Ui_MainWindow(object):
         self.treeWidget_calculations.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.treeWidget_calculations.setSizeAdjustPolicy(QAbstractScrollArea.AdjustIgnored)
         self.treeWidget_calculations.setEditTriggers(QAbstractItemView.DoubleClicked|QAbstractItemView.EditKeyPressed|QAbstractItemView.SelectedClicked)
-        self.treeWidget_calculations.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.treeWidget_calculations.setSelectionMode(QAbstractItemView.SingleSelection)
         self.treeWidget_calculations.setRootIsDecorated(True)
         self.treeWidget_calculations.setUniformRowHeights(False)
         self.treeWidget_calculations.setItemsExpandable(False)
@@ -71,7 +73,25 @@ class Ui_MainWindow(object):
         self.treeWidget_calculations.header().setDefaultSectionSize(100)
         self.treeWidget_calculations.header().setHighlightSections(False)
 
-        self.horizontalLayout_21.addWidget(self.treeWidget_calculations)
+        self.verticalLayout_11.addWidget(self.treeWidget_calculations)
+
+        self.horizontalLayout_21 = QHBoxLayout()
+        self.horizontalLayout_21.setObjectName(u"horizontalLayout_21")
+        self.button_up_data = QPushButton(self.tab_data)
+        self.button_up_data.setObjectName(u"button_up_data")
+
+        self.horizontalLayout_21.addWidget(self.button_up_data)
+
+        self.button_down_data = QPushButton(self.tab_data)
+        self.button_down_data.setObjectName(u"button_down_data")
+
+        self.horizontalLayout_21.addWidget(self.button_down_data)
+
+
+        self.verticalLayout_11.addLayout(self.horizontalLayout_21)
+
+
+        self.horizontalLayout_22.addLayout(self.verticalLayout_11)
 
         self.verticalLayout_9 = QVBoxLayout()
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
@@ -255,12 +275,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_9.addLayout(self.horizontalLayout_5)
 
 
-        self.horizontalLayout_21.addLayout(self.verticalLayout_9)
+        self.horizontalLayout_22.addLayout(self.verticalLayout_9)
 
 
-        self.horizontalLayout_22.addLayout(self.horizontalLayout_21)
+        self.verticalLayout_38.addLayout(self.horizontalLayout_22)
 
-        self.tabWidget.addTab(self.tab_data, "")
+        self.tabWidget_main.addTab(self.tab_data, "")
         self.tab = QWidget()
         self.tab.setObjectName(u"tab")
         self.verticalLayout_8 = QVBoxLayout(self.tab)
@@ -390,7 +410,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_8.addLayout(self.verticalLayout_7)
 
-        self.tabWidget.addTab(self.tab, "")
+        self.tabWidget_main.addTab(self.tab, "")
         self.tab_graphs = QWidget()
         self.tab_graphs.setObjectName(u"tab_graphs")
         self.horizontalLayout_23 = QHBoxLayout(self.tab_graphs)
@@ -711,7 +731,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_23.addLayout(self.horizontalLayout_16)
 
-        self.tabWidget.addTab(self.tab_graphs, "")
+        self.tabWidget_main.addTab(self.tab_graphs, "")
         self.tab_chrono = QWidget()
         self.tab_chrono.setObjectName(u"tab_chrono")
         self.horizontalLayout_28 = QHBoxLayout(self.tab_chrono)
@@ -855,7 +875,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_28.addLayout(self.verticalLayout_30)
 
-        self.tabWidget.addTab(self.tab_chrono, "")
+        self.tabWidget_main.addTab(self.tab_chrono, "")
         self.tab_key_parameters = QWidget()
         self.tab_key_parameters.setObjectName(u"tab_key_parameters")
         self.horizontalLayout_25 = QHBoxLayout(self.tab_key_parameters)
@@ -1029,7 +1049,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_25.addLayout(self.verticalLayout_31)
 
-        self.tabWidget.addTab(self.tab_key_parameters, "")
+        self.tabWidget_main.addTab(self.tab_key_parameters, "")
         self.tab_8 = QWidget()
         self.tab_8.setObjectName(u"tab_8")
         self.verticalLayout_29 = QVBoxLayout(self.tab_8)
@@ -1137,9 +1157,9 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_29.addWidget(self.frame_4)
 
-        self.tabWidget.addTab(self.tab_8, "")
+        self.tabWidget_main.addTab(self.tab_8, "")
 
-        self.verticalLayout_2.addWidget(self.tabWidget)
+        self.verticalLayout_2.addWidget(self.tabWidget_main)
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -1152,6 +1172,11 @@ class Ui_MainWindow(object):
         self.button_path_save.setObjectName(u"button_path_save")
 
         self.horizontalLayout.addWidget(self.button_path_save)
+
+        self.button_pre_run = QPushButton(self.widget)
+        self.button_pre_run.setObjectName(u"button_pre_run")
+
+        self.horizontalLayout.addWidget(self.button_pre_run)
 
         self.button_execute = QPushButton(self.widget)
         self.button_execute.setObjectName(u"button_execute")
@@ -1168,7 +1193,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget_main.setCurrentIndex(0)
         self.tabs_add_calculatuons.setCurrentIndex(0)
         self.tab_graphs_list.setCurrentIndex(0)
         self.tab_chrono_list.setCurrentIndex(0)
@@ -1188,6 +1213,8 @@ class Ui_MainWindow(object):
         ___qtreewidgetitem.setText(2, QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0440\u0435\u0437\u043a\u0430 \u0441\u0432\u0435\u0440\u0445\u0443", None));
         ___qtreewidgetitem.setText(1, QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0440\u0435\u0437\u043a\u0430 \u0441\u043d\u0438\u0437\u0443", None));
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435", None));
+        self.button_up_data.setText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0440\u0445", None))
+        self.button_down_data.setText(QCoreApplication.translate("MainWindow", u"\u0412\u043d\u0438\u0437", None))
         self.label_12.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0440\u0435\u0437\u043a\u0430 \u0441\u043d\u0438\u0437\u0443", None))
         self.line_cut_down_name.setText(QCoreApplication.translate("MainWindow", u"Time", None))
         self.line_cut_down_name.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u0430", None))
@@ -1203,13 +1230,13 @@ class Ui_MainWindow(object):
         self.button_path_to_calc.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0437\u043e\u0440...", None))
         self.button_add_result.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
         self.tabs_add_calculatuons.setTabText(self.tabs_add_calculatuons.indexOf(self.tab_result), QCoreApplication.translate("MainWindow", u"*/RESULT", None))
-        self.line_path_to_sackle.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u041f\u0443\u0442\u044c \u043a *.sackle", None))
+        self.line_path_to_sackle.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u041f\u0443\u0442\u044c \u043a *.sockle", None))
         self.button_path_to_sackle.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0437\u043e\u0440...", None))
         self.button_add_sackle.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
         self.tabs_add_calculatuons.setTabText(self.tabs_add_calculatuons.indexOf(self.tab_sockle), QCoreApplication.translate("MainWindow", u"*.sockle", None))
-        self.button_del_chosen_data.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0435", None))
+        self.button_del_chosen_data.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
         self.button_reset_data.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_data), QCoreApplication.translate("MainWindow", u"\u0414\u0430\u043d\u043d\u044b\u0435", None))
+        self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_data), QCoreApplication.translate("MainWindow", u"\u0414\u0430\u043d\u043d\u044b\u0435", None))
         ___qtreewidgetitem1 = self.treeWidget_corrected_parameters.headerItem()
         ___qtreewidgetitem1.setText(2, QCoreApplication.translate("MainWindow", u"\u0412\u044b\u0440\u0430\u0436\u0435\u043d\u0438\u0435", None));
         ___qtreewidgetitem1.setText(1, QCoreApplication.translate("MainWindow", u"\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0438", None));
@@ -1224,11 +1251,11 @@ class Ui_MainWindow(object):
         self.radioButton_no_extra_operations.setText(QCoreApplication.translate("MainWindow", u"\u0411\u0435\u0437 \u0434\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0445 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0439", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u0412\u044b\u0440\u0430\u0436\u0435\u043d\u0438\u0435", None))
         self.button_corrected_parameters_add.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
-        self.button_corrected_parameters_del.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0435", None))
+        self.button_corrected_parameters_del.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
         self.button_corrected_parameters_reset.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c", None))
         self.button_import_cfg.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u043f\u043e\u0440\u0442 \u043d\u0430\u0441\u0442\u0440\u043e\u0435\u043a", None))
         self.button_export_cfg.setText(QCoreApplication.translate("MainWindow", u"\u042d\u043a\u0441\u043f\u043e\u0440\u0442 \u043d\u0430\u0441\u0442\u0440\u043e\u0435\u043a", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0430", None))
+        self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0430", None))
         ___qtreewidgetitem2 = self.treeWidget_graphs_single.headerItem()
         ___qtreewidgetitem2.setText(15, QCoreApplication.translate("MainWindow", u"\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435", None));
         ___qtreewidgetitem2.setText(14, QCoreApplication.translate("MainWindow", u"X \u0448\u0430\u0433 \u0441\u0435\u0442\u043a\u0438", None));
@@ -1293,9 +1320,9 @@ class Ui_MainWindow(object):
         self.line_graphs_x_step.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0428\u0430\u0433 \u0441\u0435\u0442\u043a\u0438 \u043f\u043e X", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435", None))
         self.button_graphs_add.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
-        self.button_del_chosen_graphs.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0435", None))
+        self.button_del_chosen_graphs.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
         self.button_reset_graphs.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_graphs), QCoreApplication.translate("MainWindow", u"\u0413\u0440\u0430\u0444\u0438\u043a\u0438", None))
+        self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_graphs), QCoreApplication.translate("MainWindow", u"\u0413\u0440\u0430\u0444\u0438\u043a\u0438", None))
         ___qtreewidgetitem4 = self.treeWidget_chrono_single.headerItem()
         ___qtreewidgetitem4.setText(4, QCoreApplication.translate("MainWindow", u"\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435", None));
         ___qtreewidgetitem4.setText(3, QCoreApplication.translate("MainWindow", u"\u041e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u0438\u0435 \u0441\u0432\u0435\u0440\u0445\u0443", None));
@@ -1325,9 +1352,9 @@ class Ui_MainWindow(object):
         self.line_cut_up_chrono_value.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435 (\u0447\u0438\u0441\u043b\u043e, min, max)", None))
         self.label_29.setText(QCoreApplication.translate("MainWindow", u"\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435", None))
         self.button_chrono_parameters_add.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
-        self.button_del_chosen_chrono_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0435", None))
+        self.button_del_chosen_chrono_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
         self.button_reset_chrono_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_chrono), QCoreApplication.translate("MainWindow", u"\u0425\u0440\u043e\u043d\u043e\u043b\u043e\u0433\u0438\u044f", None))
+        self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_chrono), QCoreApplication.translate("MainWindow", u"\u0425\u0440\u043e\u043d\u043e\u043b\u043e\u0433\u0438\u044f", None))
         ___qtreewidgetitem6 = self.treeWidget_key_parameters_single.headerItem()
         ___qtreewidgetitem6.setText(5, QCoreApplication.translate("MainWindow", u"\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435", None));
         ___qtreewidgetitem6.setText(4, QCoreApplication.translate("MainWindow", u"\u041e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u0438\u0435 \u0441\u0432\u0435\u0440\u0445\u0443", None));
@@ -1363,9 +1390,9 @@ class Ui_MainWindow(object):
         self.line_cut_up_key_parameters_value.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435 (\u0447\u0438\u0441\u043b\u043e, min, max)", None))
         self.label_28.setText(QCoreApplication.translate("MainWindow", u"\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435", None))
         self.button_key_parameters_add.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
-        self.button_del_chosen_key_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0435", None))
+        self.button_del_chosen_key_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
         self.button_reset_key_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_key_parameters), QCoreApplication.translate("MainWindow", u"\u041a\u043b\u044e\u0447\u0435\u0432\u044b\u0435 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u044b", None))
+        self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_key_parameters), QCoreApplication.translate("MainWindow", u"\u041a\u043b\u044e\u0447\u0435\u0432\u044b\u0435 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u044b", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0444\u0430\u0439\u043b\u0430", None))
         self.line_file_save_name.setText(QCoreApplication.translate("MainWindow", u"Results", None))
         self.line_file_save_name.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435", None))
@@ -1382,9 +1409,10 @@ class Ui_MainWindow(object):
         self.checkBox_round_chrono.setText(QCoreApplication.translate("MainWindow", u"\u041e\u043a\u0440\u0443\u0433\u043b\u044f\u0442\u044c \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u044f \u0432 \u0445\u0440\u043e\u043d\u043e\u043b\u043e\u0433\u0438\u0438", None))
         self.checkBox_round_key_parameters.setText(QCoreApplication.translate("MainWindow", u"\u041e\u043a\u0440\u0443\u0433\u043b\u044f\u0442\u044c \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u044f \u043a\u043b\u044e\u0447\u0435\u0432\u044b\u0445 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u043e\u0432", None))
         self.checkBox_empty_graphs.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0438\u0441\u043e\u0432\u0430\u0442\u044c \u043f\u0443\u0441\u0442\u044b\u0435 \u0433\u0440\u0430\u0444\u0438\u043a\u0438", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_8), QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u043e\u0432", None))
+        self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_8), QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u043e\u0432", None))
         self.line_path_to_save.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u041f\u0443\u0442\u044c \u043a \u043f\u0430\u043f\u043a\u0435 \u0434\u043b\u044f \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u043e\u0432", None))
         self.button_path_save.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0437\u043e\u0440...", None))
+        self.button_pre_run.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0435\u0434\u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0430", None))
         self.button_execute.setText(QCoreApplication.translate("MainWindow", u"\u0412\u044b\u043f\u043e\u043b\u043d\u0438\u0442\u044c", None))
     # retranslateUi
 

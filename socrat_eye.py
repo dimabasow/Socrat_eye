@@ -1,21 +1,24 @@
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import pylab
+import pandas as pd
+import numpy as np
+import os
+import copy
+import pickle
+from struct import unpack
+
+
 
 def graph (GrName, get_x, get_y, lablex="t, s", labley="", x1=None, y1=None, x2=None, y2=None, mult_x=None, mult_y=None, shift_x=None, shift_y=None, stpx=None, stpy=None):
-    import matplotlib.pyplot as plt
-    import matplotlib.ticker as ticker
-    import pylab
-    import os
-    import pandas
-    import numpy
-    
-    
-    if isinstance(get_y[0],(numpy.ndarray,pandas.Series,list,tuple)):
-        y=[pandas.Series(i) for i in get_y]
+    if isinstance(get_y[0],(np.ndarray,pd.Series,list,tuple)):
+        y=[pd.Series(i) for i in get_y]
     else:
-        y=[pandas.Series(get_y)]
-    if isinstance(get_x[0],(numpy.ndarray,pandas.Series,list,tuple)):
-        x=[pandas.Series(i) for i in get_x]
+        y=[pd.Series(get_y)]
+    if isinstance(get_x[0],(np.ndarray,pd.Series,list,tuple)):
+        x=[pd.Series(i) for i in get_x]
     else:
-        x=[pandas.Series(get_x) for i in range(len(y))]
+        x=[pd.Series(get_x) for i in range(len(y))]
     
     colors = ('#000000', '#FF0000', '#0000FF', '#008000', '#FF00FF', '#8B4513',
          '#808080', '#C0C0C0', '#800080', '#800000', '#FFFF00', '#00FF00',
@@ -79,8 +82,8 @@ def graph (GrName, get_x, get_y, lablex="t, s", labley="", x1=None, y1=None, x2=
             N_points=1
         N_points_aray.append(N_points)
     for i in range(len(y)):
-        ax.plot(x[i], y[i], colors[i], linewidth = 2, label = str(i+1), marker = markers[i], markevery = N_points_aray[i])
-    
+        ax.plot(x[i], y[i], colors[i-len(colors)*(i//len(colors))], linewidth = 2, label = str(i+1), marker = markers[i-len(markers)*(i//len(markers))], markevery = N_points_aray[i])
+
     pylab.xlim (xmin = x1, xmax=x2)
     pylab.ylim (ymin = y1, ymax=y2)
     #Настраиваем оси
@@ -239,7 +242,7 @@ class Calculation:
                 if shift_down:
                     return table.iloc[min(indexes), :]
                 else:
-                    return table.iloc[min(indexes), :]
+                    return table.iloc[max(indexes), :]
             else:
                 print("Значение {} не лежит в диапазоне параметра".format(parameter_name))
                 return None
@@ -269,7 +272,7 @@ class Calculation:
                         report_table = report_table[report_table["ON_OFF_report"] == False]
                     else:
                         report_table = None
-                    if report_table is not None:
+                    if report_table is not None and len(report_table)>0:
                         if "LAST" in parameter_value:
                             return_value = report_table.iloc[-1, 0]
                         elif "FIRST" in parameter_value:
@@ -309,14 +312,11 @@ class Calculation:
 
     # метод для копирования объекта
     def make_copy(self):
-        import copy
         return copy.deepcopy(self)
 
     # метод для отрисовки графика
     def graph(self, GrName, x_names, y_names, lablex="t, s", labley="", x1=None, y1=None, x2=None, y2=None, mult_x=None,
               mult_y=None, shift_x=None, shift_y=None, stpx=None, stpy=None, empty_graphs=True):
-
-        import numpy
 
         # Перевод названий по оси y в список
         if isinstance(y_names, str):
@@ -337,7 +337,7 @@ class Calculation:
             print("Ошибка при построении графика " + GrName)
 
         if draw_graph and (not empty_graphs):
-            empty_list=[numpy.all(y == y[0]) for y in get_y]
+            empty_list=[np.all(y == y[0]) for y in get_y]
             if False not in empty_list:
                 draw_graph=False
                 print("График {} пустой".format(GrName))
@@ -352,7 +352,6 @@ class Calculation:
 
     # метод для создания хронологии
     def make_chrono(self, time_list):
-        import pandas
         if isinstance(time_list, dict):
             time_list = [time_list]
         chrono_list = [self.chrono_table]
@@ -361,12 +360,11 @@ class Calculation:
                                                time_point["cut_up"])
             if time_moment is not None:
                 chrono_list.append(
-                    pandas.DataFrame([[time_moment, time_point["description"]]], columns=["Time", "Description"]))
-        self.chrono_table = pandas.concat(chrono_list).drop_duplicates().sort_values(by=["Time"]).reset_index(drop=True)
+                    pd.DataFrame([[time_moment, time_point["description"]]], columns=["Time", "Description"]))
+        self.chrono_table = pd.concat(chrono_list).drop_duplicates().sort_values(by=["Time"]).reset_index(drop=True)
 
     # метод для создания DataFrame с ключевыми параметрами
     def make_key_table(self, key_list):
-        import pandas
         if isinstance(key_list, dict):
             key_list = [key_list]
         key_parameters_list = [self.key_parameters_table]
@@ -375,19 +373,18 @@ class Calculation:
                                                key_point["value"], key_point["cut_down"], key_point["cut_up"])
             if key_value is not None:
                 key_parameters_list.append(
-                    pandas.DataFrame([[key_point["description"], key_value]], columns=["Description", "Value"]))
-        self.key_parameters_table = pandas.concat(key_parameters_list).drop_duplicates().reset_index(drop=True)
+                    pd.DataFrame([[key_point["description"], key_value]], columns=["Description", "Value"]))
+        self.key_parameters_table = pd.concat(key_parameters_list).drop_duplicates().reset_index(drop=True)
 
     # метод для сброса ключевых параметров, хронологий и графиков
     def reset_data(self):
-        import pandas
         self.graph_list = []
-        self.chrono_table = pandas.DataFrame(columns=["Time", "Description"])
-        self.key_parameters_table = pandas.DataFrame(columns=["Description", "Value"])
+        self.chrono_table = pd.DataFrame(columns=["Time", "Description"])
+        self.key_parameters_table = pd.DataFrame(columns=["Description", "Value"])
 
     # метод для сохранения в файл
     def save(self, path="", name="data"):
-        import pickle
+
         copy_to_save = self.make_copy()
         copy_to_save.reset_data()
         with open(path + name + '.sokle', 'wb') as f:
@@ -395,25 +392,27 @@ class Calculation:
     
     # метод для получения получения пользовательских значений
     def get_user_values(self, expression):
-        import re
-        init_expression=expression
-        str_values_with_bracets=re.findall("\{\w*\}", expression)
-        for str_value_with_bracets in str_values_with_bracets:
-            str_value=str_value_with_bracets[1:-1]
-            str_value="self.get_values('{}')".format(str_value)
-            expression=expression.replace(str_value_with_bracets, str_value)
-        
+        init_expression = expression
+
+        list_to_replace = []
+        expression_left_lst = expression.split("{")
+        for sub_string in expression_left_lst[1:]:
+            sub_list = sub_string.split("}")
+            list_to_replace.append(sub_list[0])
+        list_to_replace = list(set(list_to_replace))
+
+        for parameter in list_to_replace:
+            expression = expression.replace("{" + parameter + "}", "self.get_values('{}')".format(parameter))
+
         try:
-            value=eval(expression)
+            value = eval(expression)
         except:
             print("Ошибка при выполнении " + init_expression)
-            value=None
+            value = None
         return value
     
     # метод для корректировки параметров
     def correcting_parameters(self, name, expression, integral=False, derivative=False):
-        import pandas as pd
-        import numpy as np
         value=self.get_user_values(expression)
         if isinstance(value, pd.Series):
             names_frame=list(self.data_dict.keys())
@@ -434,12 +433,9 @@ class Calculation:
 
 class Socrat_calculation(Calculation):
     
-    def __init__(self,path_to_folder, dia_names=[], time_shift=None):
+    def __init__(self,path_to_folder, dia_names_init=[]):
 
         super().__init__()
-
-        import os
-        import pandas
         initial_dir=os.getcwd()
         #метод, выполняемый при инициализации для парсинга файла #_report.lst
         def parsing_report(filename):
@@ -513,7 +509,7 @@ class Socrat_calculation(Calculation):
                                         type_for_pandas,
                                         delay_for_pandas,
                                         condition_for_pandas, ])
-            return pandas.DataFrame(list_for_pandas,
+            return pd.DataFrame(list_for_pandas,
                                     columns=["Time_report", "Name_report", "ON_OFF_report", "Type_report",
                                              "Delay_report", "Condition_report"])
 
@@ -526,12 +522,22 @@ class Socrat_calculation(Calculation):
                 self.data_dict["report"]=parsing_report(report_name)
 
         #создаю и заполняю список из названий кластеров dia
-        dia_names=[]
+        dia_names_read=[]
         for dia_name in os.listdir():
             if dia_name.endswith(".dia"):
-                dia_names.append(dia_name)
+                dia_names_read.append(dia_name)
+
+
+        if isinstance(dia_names_init,(list,tuple)) and len(dia_names_init)>0:
+            dia_names=[]
+            for name_init in dia_names_init:
+                for name_read in dia_names_read:
+                    if name_init in name_read:
+                        dia_names.append(name_read)
+        else:
+            dia_names=dia_names_read
         #создаю DataFrame из параметров кластеров dia
-        dia_table=pandas.read_table(dia_names[0], skiprows=1, delim_whitespace=True)
+        dia_table=pd.read_table(dia_names[0], skiprows=1, delim_whitespace=True)
         #создаю словарь, в котором ключи - названия кластеров dia, а значения - входящие в данный кластер параметры
         self.dia_clusters_dict={}
         self.dia_clusters_dict[dia_names[0].split("#")[-1].split(".dia")[0]]=list(dia_table.columns)
@@ -539,9 +545,9 @@ class Socrat_calculation(Calculation):
         #заполняю созданные DataFrame и словарь
         for dia_name in dia_names[1:]:
             print("Чтение " + dia_name)
-            table=pandas.read_table(dia_name, skiprows=1, delim_whitespace=True, encoding="mbcs")
+            table=pd.read_table(dia_name, skiprows=1, delim_whitespace=True, encoding="mbcs")
             if len(table)==len(dia_table):
-                dia_table=pandas.merge(dia_table,table)
+                dia_table=pd.merge(dia_table,table)
                 self.dia_clusters_dict[dia_name.split("#")[-1].split(".dia")[0]]=list(table.columns)
             else:
                 # бывает, что СОКРАТ криво записывает файлы
@@ -554,9 +560,9 @@ class Socrat_calculation(Calculation):
             if folder_hef.endswith("#hefest"):
                 os.chdir(folder_hef)
                 if "p1runout" in os.listdir():
-                    self.data_dict["p1runout"]=pandas.read_table("p1runout", delim_whitespace=True)
+                    self.data_dict["p1runout"]=pd.read_table("p1runout", delim_whitespace=True)
                 if "p1spn" in os.listdir():
-                    self.data_dict["p1spn"]=pandas.read_table("p1spn", delim_whitespace=True)
+                    self.data_dict["p1spn"]=pd.read_table("p1spn", delim_whitespace=True)
         
         os.chdir(initial_dir)
 
@@ -573,9 +579,6 @@ class Trap_calculation(Calculation):
     def __init__(self, path_to_folder):
         super().__init__()
 
-        import os
-        import pandas
-
         # метод для парсинга файла event
         def parsing_event(filename):
             list_for_pandas = []
@@ -589,11 +592,11 @@ class Trap_calculation(Calculation):
                         time = time.split("=")[1]
                         time = time.split()[0]
                         list_for_pandas.append([time, name, True])
-            return pandas.DataFrame(list_for_pandas, columns=["Time_report", "Name_report", "ON_OFF_report"])
+            return pd.DataFrame(list_for_pandas, columns=["Time_report", "Name_report", "ON_OFF_report"])
 
         # метод для чтения lent3
         def read_lent3(filename):
-            from struct import unpack
+
             with open(filename, 'rb') as f:
                 names = []
                 data = []
@@ -616,7 +619,7 @@ class Trap_calculation(Calculation):
                     row = [unpack("f", row[k * 4:(k + 1) * 4])[0] for k in range(N_parameters + 2)]
                     data.append(row[2:])
 
-            return pandas.DataFrame(data, columns=names)
+            return pd.DataFrame(data, columns=names)
 
         initial_dir = os.getcwd()
         os.chdir(path_to_folder)
@@ -631,11 +634,10 @@ class Trap_calculation(Calculation):
 
 class Series_of_calculations:
     def __init__(self, calculations):
-        import pandas
         self.series=[]
         self.graph_list=[]
-        self.chrono_table=pandas.DataFrame(columns=["Description"])
-        self.key_parameters_table=pandas.DataFrame(columns=["Description"])
+        self.chrono_table=pd.DataFrame(columns=["Description"])
+        self.key_parameters_table=pd.DataFrame(columns=["Description"])
         if not isinstance(calculations,list):
             calculations=[calculations]
         for i in range(len(calculations)):
@@ -649,8 +651,6 @@ class Series_of_calculations:
 
     
     def graph (self, GrName, x_names, y_names, lablex="t, s", labley="", x1=None, y1=None, x2=None, y2=None, mult_x=None, mult_y=None, shift_x=None, shift_y=None, stpx=None, stpy=None, empty_graphs=True):
-        import numpy
-
         if isinstance(y_names, str):
             y_names=[y_names]
         if isinstance(x_names, str):
@@ -675,7 +675,7 @@ class Series_of_calculations:
             print("Ошибка при построении графика " + GrName)
 
         if draw_graph and (not empty_graphs):
-            empty_list = [numpy.all(y == y[0]) for y in get_y]
+            empty_list = [np.all(y == y[0]) for y in get_y]
             if False not in empty_list:
                 draw_graph = False
                 print("График {} пустой".format(GrName))

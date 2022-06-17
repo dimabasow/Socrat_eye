@@ -5,8 +5,8 @@ import docx
 import json
 
 from PySide6.QtWidgets import QFileDialog, QDialog
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QMainWindow, QTreeWidgetItem
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtWidgets import QApplication, QMainWindow, QTreeWidgetItem, QCompleter, QMessageBox
 
 from ui_main_window import Ui_MainWindow
 from socrat_eye import Socrat_calculation, Trap_calculation, Series_of_calculations
@@ -14,6 +14,7 @@ from graphs_edit_window import Ui_Dialog_graphs_edit
 from chrono_edit_window import Ui_Dialog_chrono_edit
 from key_parameters_edit_window import Ui_Dialog_key_parameters_edit
 from correcting_edit_window import Ui_Dialog_correcting_edit
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -24,10 +25,84 @@ class MainWindow(QMainWindow):
         # Инициализация списка с расчётами
         self.calculations = []
 
+        # Инициализация completer
+        self.completer = Completers()
+
+        # Подключение полей к completer для автодополнения
+
+        # Глобальная обрезка снизу
+        self.ui.line_cut_down_name.setCompleter(self.completer.clusters_completer)
+        self.ui.line_cut_down_value.setCompleter(self.completer.help_clusters_completer)
+
+        # Глобальная обрезка сверху
+        self.ui.line_cut_up_name.setCompleter(self.completer.clusters_completer)
+        self.ui.line_cut_up_value.setCompleter(self.completer.help_clusters_completer)
+
+
+
+        # Ключевые параметры
+        self.ui.line_key_parameter_name.setCompleter(self.completer.clusters_completer)
+        self.ui.line_search_parameter_name.textChanged.connect(lambda:
+                                                               self.selection_completer_clusters_report(
+                                                                   self.ui.line_search_parameter_name,
+                                                                   self.ui.line_search_parameter_value))
+        self.ui.line_search_parameter_value.textChanged.connect(lambda:
+                                                                self.selection_completer_help(
+                                                                    self.ui.line_search_parameter_name,
+                                                                    self.ui.line_search_parameter_value))
+        # Обрезка снизу ключевых параметров
+        self.ui.line_cut_down_key_parameters_name.setCompleter(self.completer.clusters_completer)
+        self.ui.line_cut_down_key_parameters_value.setCompleter(self.completer.help_clusters_completer)
+        # Обрезка сверху ключевых параметров
+        self.ui.line_cut_up_key_parameters_name.setCompleter(self.completer.clusters_completer)
+        self.ui.line_cut_up_key_parameters_value.setCompleter(self.completer.help_clusters_completer)
+
+        # Хронология
+        self.ui.line_chrono_parameter_name.textChanged.connect(lambda:
+                                                               self.selection_completer_clusters_report(
+                                                                   self.ui.line_chrono_parameter_name,
+                                                                   self.ui.line_chrono_parameter_value))
+        self.ui.line_chrono_parameter_value.textChanged.connect(lambda:
+                                                                self.selection_completer_help(
+                                                                    self.ui.line_chrono_parameter_name,
+                                                                    self.ui.line_chrono_parameter_value))
+
+        # Обрезка хронологий снизу
+        self.ui.line_cut_down_chrono_name.setCompleter(self.completer.clusters_completer)
+        self.ui.line_cut_down_chrono_value.setCompleter(self.completer.help_clusters_completer)
+
+        # Обрезка хронологий сверху
+        self.ui.line_cut_up_chrono_name.setCompleter(self.completer.clusters_completer)
+        self.ui.line_cut_up_chrono_value.setCompleter(self.completer.help_clusters_completer)
+
+
+
+
+
+        # Корректируемые параметры
+        # связь с completer
+        self.ui.line_corrected_parameters_name.setCompleter(self.completer.clusters_completer)
+        # методы для обновления completer при изменении корректируемых параметров
+        self.ui.line_corrected_parameters_name.textChanged.connect(
+            lambda: self.completer.update_correcting_parameters(self.ui.treeWidget_corrected_parameters))
+        self.ui.tabWidget_main.currentChanged.connect(
+            lambda: self.completer.update_correcting_parameters(self.ui.treeWidget_corrected_parameters))
+
+        # Графики
+        self.ui.line_graphs_x_names.setCompleter(self.completer.graphs_completer)
+        self.ui.line_graphs_x_names.textChanged.connect(
+            lambda: self.completer.update_graphs(self.ui.line_graphs_y_names))
+
+        self.ui.line_graphs_y_names.setCompleter(self.completer.graphs_completer)
+        self.ui.line_graphs_y_names.textChanged.connect(
+            lambda: self.completer.update_graphs(self.ui.line_graphs_y_names))
+
         # Подключение общих кнопок
         # Кнопка для выбора пути сохранения результатов
         self.ui.button_path_save.clicked.connect(
             lambda: self.ui.line_path_to_save.setText(QFileDialog.getExistingDirectory()))
+        # Кнопка для предзагрузки
+        self.ui.button_pre_run.clicked.connect(self.pre_run)
         # Кнопка выполнить
         self.ui.button_execute.clicked.connect(self.run_programm)
 
@@ -47,6 +122,12 @@ class MainWindow(QMainWindow):
         self.ui.button_reset_data.clicked.connect(lambda: self.ui.treeWidget_calculations.clear())
         self.ui.button_del_chosen_data.clicked.connect(
             lambda: self.del_selected_elements(self.ui.treeWidget_calculations))
+
+        # Перемещение вверх и вниз
+        self.ui.button_up_data.clicked.connect(
+            lambda: self.move_selected_up(self.ui.treeWidget_calculations))
+        self.ui.button_down_data.clicked.connect(
+            lambda: self.move_selected_down(self.ui.treeWidget_calculations))
 
         # Вкладка Обработка
         # Подключение кнопок для добавления параметров
@@ -104,6 +185,37 @@ class MainWindow(QMainWindow):
         self.ui.treeWidget_key_parameters_single.itemDoubleClicked.connect(self.edit_key_parameter)
         self.ui.treeWidget_key_parameters_multy.itemDoubleClicked.connect(self.edit_key_parameter)
 
+    # методы для автодополнений
+    # метод, который будет возвращать completer в поле с названием в зависимости от поля значений
+    def selection_completer_clusters_report(self, line_name, line_value):
+        value_str = line_value.text()
+        if value_str in ("min", "max"):
+            line_name.setCompleter(self.completer.clusters_completer)
+        elif value_str in ("ON_FIRST", "ON_LAST", "OFF_FIRST", "OFF_LAST"):
+            line_name.setCompleter(self.completer.report_completer)
+        else:
+            line_name.setCompleter(self.completer.clusters_report_completer)
+
+    # метод для выбора completer в поле со значением в зависимости от поля с названием
+    def selection_completer_help(self, line_name, line_value):
+        name_str = line_name.text()
+        if name_str in self.completer.set_clusters:
+            line_value.setCompleter(self.completer.help_clusters_completer)
+        elif name_str in self.completer.set_report:
+            line_value.setCompleter(self.completer.help_report_completer)
+        else:
+            line_value.setCompleter(self.completer.help_clusters_report_completer)
+
+    # метод для отображения окна с предупреждением
+    def show_message_window(self, main_text, informative_text=None):
+        msgBox = QMessageBox()
+        msgBox.setText(main_text)
+        if isinstance(informative_text,str):
+            msgBox.setInformativeText(informative_text)
+        msgBox.setWindowIcon(self.windowIcon())
+        msgBox.setWindowTitle("Сообщение")
+        msgBox.exec()
+
     # методы для общих кнопок
     # метод для удаления выбранных полей
     def del_selected_elements(self, tree):
@@ -139,6 +251,7 @@ class MainWindow(QMainWindow):
         paths = QFileDialog.getOpenFileNames(self, "Открыть файл", "", "Файлы sockle (*.sokle)")[0]
         if len(paths) > 0:
             self.ui.line_path_to_sackle.setText(";".join(paths))
+            self.add_sockle_file()
 
     # методы для добавления файлов и папок
     def add_calc(self, name, path):
@@ -154,6 +267,7 @@ class MainWindow(QMainWindow):
             self.ui.line_name_calc.setText("")
         else:
             print("Такое имя уже существует")
+            self.show_message_window("Такое имя уже существует")
 
     def add_sockle_file(self):
         paths = self.ui.line_path_to_sackle.text()
@@ -166,6 +280,7 @@ class MainWindow(QMainWindow):
                     self.add_calc(name, path)
                 else:
                     print("Неверно задан путь")
+                    self.show_message_window("Неверно задан путь")
 
     def add_result_folder(self):
         path = self.ui.line_path_to_result.text()
@@ -175,8 +290,10 @@ class MainWindow(QMainWindow):
                 self.add_calc(name, path)
             else:
                 print("Данного пути не существует")
+                self.show_message_window("Данного пути не существует")
         else:
             print("Введено пустое имя")
+            self.show_message_window("Введено пустое имя")
 
     # Вкладка Обработка
     # метод для добавления параметров
@@ -192,13 +309,17 @@ class MainWindow(QMainWindow):
             if expression!="":
                 item = QTreeWidgetItem([name, extra_operations, expression])
                 self.ui.treeWidget_corrected_parameters.addTopLevelItem(item)
+                # Нужно для completer
+                self.ui.treeWidget_corrected_parameters.setCurrentItem(item)
 
                 self.ui.line_corrected_parameters_name.setText("")
                 self.ui.text_edit_correcting_expression.setText("")
             else:
                 print("Введено пустое выражение")
+                self.show_message_window("Введено пустое выражение")
         else:
             print("Введено пустое имя")
+            self.show_message_window("Введено пустое имя")
 
     def save_cfg(self):
         config_dict={}
@@ -271,6 +392,8 @@ class MainWindow(QMainWindow):
             for cfg_columns in config_dict["Correcting"]["Items"]:
                 item = QTreeWidgetItem(cfg_columns)
                 self.ui.treeWidget_corrected_parameters.addTopLevelItem(item)
+            # Нужно для completer
+            self.ui.treeWidget_corrected_parameters.setCurrentItem(item)
 
             # Графики
             self.ui.treeWidget_graphs_single.clear()
@@ -308,6 +431,8 @@ class MainWindow(QMainWindow):
     # метод для редактирования корректируемого параметра
     def edit_correcting(self, item, column):
         dlg = CorrectingEditDlg(item)
+        self.completer.update_correcting_parameters(self.ui.treeWidget_corrected_parameters)
+        dlg.line_corrected_parameters_name.setCompleter(self.completer.clusters_completer)
         dlg.exec()
     # Вкладка Графики
     # Метод для выбора дерева графиков
@@ -390,6 +515,14 @@ class MainWindow(QMainWindow):
     # метод для редактирования графика
     def edit_graph(self, item, column):
         dlg=GraphEditDlg(item)
+        # Графики
+        dlg.line_graphs_x_names.setCompleter(self.completer.graphs_completer)
+        dlg.line_graphs_x_names.textChanged.connect(
+            lambda: self.completer.update_graphs(dlg.line_graphs_y_names))
+
+        dlg.line_graphs_y_names.setCompleter(self.completer.graphs_completer)
+        dlg.line_graphs_y_names.textChanged.connect(
+            lambda: self.completer.update_graphs(dlg.line_graphs_y_names))
         dlg.exec()
 
     # Вкладка Хронология
@@ -414,10 +547,13 @@ class MainWindow(QMainWindow):
             description = self.ui.text_edit_chrono_description.toPlainText()
             if name == "":
                 print("Введено пустое название")
+                self.show_message_window("Введено пустое название")
             elif value == "":
                 print("Введено пустое значение")
+                self.show_message_window("Введено пустое значение")
             elif description == "":
                 print("Введено пустое описание")
+                self.show_message_window("Введено пустое описание")
             else:
                 item = QTreeWidgetItem([name,
                                         value,
@@ -437,6 +573,23 @@ class MainWindow(QMainWindow):
     # метод для редактирования хронологии
     def edit_chrono(self, item, column):
         dlg=ChronoEditDlg(item)
+
+        # Хронология
+        dlg.line_chrono_parameter_name.textChanged.connect(lambda:
+                                                               self.selection_completer_clusters_report(
+                                                                   dlg.line_chrono_parameter_name,
+                                                                   dlg.line_chrono_parameter_value))
+        dlg.line_chrono_parameter_value.textChanged.connect(lambda:
+                                                                self.selection_completer_help(
+                                                                    dlg.line_chrono_parameter_name,
+                                                                    dlg.line_chrono_parameter_value))
+        # Обрезка хронологий снизу
+        dlg.line_cut_down_chrono_name.setCompleter(self.completer.clusters_completer)
+        dlg.line_cut_down_chrono_value.setCompleter(self.completer.help_clusters_completer)
+        # Обрезка хронологий сверху
+        dlg.line_cut_up_chrono_name.setCompleter(self.completer.clusters_completer)
+        dlg.line_cut_up_chrono_value.setCompleter(self.completer.help_clusters_completer)
+
         dlg.exec()
 
     # Вкладка Ключевые параметры
@@ -464,12 +617,16 @@ class MainWindow(QMainWindow):
             description = self.ui.text_edit_key_parameters_description.toPlainText()
             if key_parameter_name == "":
                 print("Введено пустое название ключевого параметра")
+                self.show_message_window("Введено пустое название ключевого параметра")
             elif search_parameter_name == "":
                 print("Введено пустое название параметра для поиска")
+                self.show_message_window("Введено пустое название параметра для поиска")
             elif value == "":
                 print("Введено пустое значение")
+                self.show_message_window("Введено пустое значение")
             elif description == "":
                 print("Введено пустое описание")
+                self.show_message_window("Введено пустое описание")
             else:
                 item = QTreeWidgetItem([key_parameter_name,
                                         search_parameter_name,
@@ -503,10 +660,29 @@ class MainWindow(QMainWindow):
     # метод для редактирования ключевого параметра
     def edit_key_parameter(self, item, column):
         dlg=KeyParametersEditDlg(item)
+
+        dlg.line_key_parameter_name.setCompleter(self.completer.clusters_completer)
+        dlg.line_search_parameter_name.textChanged.connect(lambda:
+                                                               self.selection_completer_clusters_report(
+                                                                   dlg.line_search_parameter_name,
+                                                                   dlg.line_search_parameter_value))
+        dlg.line_search_parameter_value.textChanged.connect(lambda:
+                                                                self.selection_completer_help(
+                                                                    dlg.line_search_parameter_name,
+                                                                    dlg.line_search_parameter_value))
+        # Обрезка снизу ключевых параметров
+        dlg.line_cut_down_key_parameters_name.setCompleter(self.completer.clusters_completer)
+        dlg.line_cut_down_key_parameters_value.setCompleter(self.completer.help_clusters_completer)
+        # Обрезка сверху ключевых параметров
+        dlg.line_cut_up_key_parameters_name.setCompleter(self.completer.clusters_completer)
+        dlg.line_cut_up_key_parameters_value.setCompleter(self.completer.help_clusters_completer)
+
         dlg.exec()
 
     # метод для предварительной загрузки
     def pre_run(self):
+        # Список для хранения прочитанных данных
+        dict_list=[]
         # функция для обработки cut_down и cut_up
         def cut_str_to_dict(cut_str):
             name, value = cut_str.split(";")
@@ -515,13 +691,10 @@ class MainWindow(QMainWindow):
                     value = float(value)
                 except:
                     value = None
-            if value is None:
-                return None
-            else:
-                return {"name": name, "value": value}
 
-        #сброс предварительно загруженных результатов
-        self.calculations=[]
+            return {"name": name, "value": value}
+
+
         # Получение параметров с вкладки Данные
         calculations_columns = ["name", "cut_down", "cut_up", "path"]
         for item_index in range(self.ui.treeWidget_calculations.topLevelItemCount()):
@@ -533,27 +706,50 @@ class MainWindow(QMainWindow):
             for cut_name in ("cut_down", "cut_up"):
                 item_dict[cut_name] = cut_str_to_dict(item_dict[cut_name])
 
-            if item_dict["path"].endswith(".sokle"):
-                with open(item_dict["path"], 'rb') as f:
-                    calc = pickle.load(f)
-            elif os.path.isdir(item_dict["path"]):
-                file_names_list = os.listdir(item_dict["path"])
-                file_names = ";".join(file_names_list)
-                if ".dia;" in file_names:
-                    calc = Socrat_calculation(item_dict["path"])
-                elif "lent3" in file_names_list:
-                    calc = Trap_calculation(item_dict["path"])
+            dict_list.append(item_dict)
+
+        # Список с прочитаными расчётами. Удаляет "calc_object" из self.calculations
+        calc_object_list=[calculation.pop("calc_object") for calculation in self.calculations]
+
+        for i in range(len(self.calculations)):
+            if self.calculations[i] in dict_list:
+                k=dict_list.index(self.calculations[i])
+                dict_list[k]["calc_object"] = calc_object_list[i]
+
+        for item_dict in dict_list:
+            if not "calc_object" in item_dict:
+                if item_dict["path"].endswith(".sokle"):
+                    with open(item_dict["path"], 'rb') as f:
+                        calc = pickle.load(f)
+                elif os.path.isdir(item_dict["path"]):
+                    file_names_list = os.listdir(item_dict["path"])
+                    file_names = ";".join(file_names_list)
+                    if ".dia;" in file_names:
+                        calc = Socrat_calculation(item_dict["path"])
+                    elif "lent3" in file_names_list:
+                        calc = Trap_calculation(item_dict["path"])
+                    else:
+                        print("Проблемы с " + item_dict["path"])
+                        self.show_message_window("Проблемы с " + item_dict["path"])
+                        self.calculations = []
+                        break
                 else:
                     print("Проблемы с " + item_dict["path"])
+                    self.show_message_window("Проблемы с " + item_dict["path"])
                     self.calculations = []
                     break
-            else:
-                print("Проблемы с " + item_dict["path"])
-                self.calculations = []
-                break
-            item_dict["calc_object"]=calc
 
-            self.calculations.append(item_dict)
+                # Заполнение множеств для автодополнения
+                for table_name in calc.data_dict.keys():
+                    if table_name == "report":
+                        self.completer.update_report(calc.data_dict[table_name]["Name_report"])
+                    else:
+                        self.completer.update_clusters(calc.data_dict[table_name].columns)
+
+                item_dict["calc_object"]=calc
+
+        self.calculations = dict_list
+
 
     # метод для БОЛЬШОЙ КНОПКИ Выполнить
     def run_programm(self):
@@ -566,10 +762,8 @@ class MainWindow(QMainWindow):
                     value = float(value)
                 except:
                     value = None
-            if value is None:
-                return None
-            else:
-                return {"name": name, "value": value}
+
+            return {"name": name, "value": value}
 
         # Список для Multy
         calculations_list = []
@@ -596,25 +790,24 @@ class MainWindow(QMainWindow):
         # функции для округления ключевых и хронологических чисел
         def round_chrono(value):
             abs_value = abs(value)
-            if abs_value < 1:
+            if abs_value < 10:
                 return round(value, 2)
-            elif abs_value < 10:
+            elif abs_value < 100:
                 return round(value, 1)
-            elif abs_value < 10000:
-                return int(round(value, 0))
-            elif abs_value < 100000:
-                return int(round(value, -1))
             else:
-                return int(round(value, -2))
+                return int(round(value, 0))
         def round_key(value):
             abs_value = abs(value)
-            if abs_value < 100:
+            if abs_value < 10:
+                return round(value, 2)
+            elif abs_value < 100:
                 return round(value, 1)
             else:
-                return round(value, 0)
+                return int(round(value, 0))
 
         # Предварительная загрузка:
         self.pre_run()
+
 
         # Получение параметров с вкладки Обработка
         corrected_parameters = []
@@ -830,7 +1023,12 @@ class MainWindow(QMainWindow):
                 table.cell(0, 1).text = "Событие"
                 for k in range(len(calc.chrono_table)):
                     table.add_row()
-                    table.cell(k + 1, 0).text = str(calc.chrono_table.iloc[k, 0]).replace(".", number_delim)
+                    value_str=str(calc.chrono_table.iloc[k, 0])
+                    if value_str.endswith(".0"):
+                        value_str=value_str[:-2]
+                    if number_delim!=".":
+                        value_str=value_str.replace(".", number_delim)
+                    table.cell(k + 1, 0).text = value_str
                     table.cell(k + 1, 1).text = str(calc.chrono_table.iloc[k, 1])
                 doc.add_page_break()
 
@@ -855,7 +1053,15 @@ class MainWindow(QMainWindow):
 
             # Запись Word Single
             if len(calc.graph_list)>0 or len(calc.key_parameters_table) or len(calc.chrono_table) >0:
-                doc.save(calculation["name"] + ".docx")
+                doc_saved=False
+                doc_name=calculation["name"] + ".docx"
+                while not doc_saved:
+                    try:
+                        doc.save(doc_name)
+                        doc_saved=True
+                    except:
+                        print("Файл {} в данный момент открыт".format(doc_name))
+                        self.show_message_window("Файл {} в данный момент открыт".format(doc_name))
 
             # Сброс графиков, хронологий и ключевых параметров
             calc.reset_data()
@@ -949,8 +1155,17 @@ class MainWindow(QMainWindow):
 
         # Запись Word Multy
         if len(calculation_series.graph_list) > 0 or len(calculation_series.key_parameters_table) or len(calculation_series.chrono_table) > 0:
-            doc.save(file_save_name + ".docx")
+            doc_saved = False
+            doc_name = file_save_name + ".docx"
+            while not doc_saved:
+                try:
+                    doc.save(file_save_name + ".docx")
+                    doc_saved = True
+                except:
+                    print("Файл {} в данный момент открыт".format(doc_name))
+                    self.show_message_window("Файл {} в данный момент открыт".format(doc_name))
         print("\n\n\nГотово")
+        self.show_message_window("Готово")
 
 class GraphEditDlg(Ui_Dialog_graphs_edit, QDialog):
     def __init__(self, item, parent=None):
@@ -1050,7 +1265,6 @@ class CorrectingEditDlg(Ui_Dialog_correcting_edit, QDialog):
         self.line_corrected_parameters_name.setText(item.text(0))
         if item.text(1)==self.radioButton_gradient.text():
             self.radioButton_gradient.setChecked(True)
-            print("ГРАДИЕНТ")
         elif item.text(1) == self.radioButton_integral.text():
             self.radioButton_integral.setChecked(True)
         else:
@@ -1068,6 +1282,66 @@ class CorrectingEditDlg(Ui_Dialog_correcting_edit, QDialog):
         else:
             self.item.setText(1, "")
         self.item.setText(2, self.text_edit_correcting_expression.toPlainText())
+
+
+class Completers():
+    def __init__(self):
+        self.reset()
+
+        self.set_help_clusters = set(["min", "max"])
+        self.set_help_report = set(["ON_FIRST", "ON_LAST", "OFF_FIRST", "OFF_LAST"])
+
+        self.help_clusters_completer = QCompleter(list(self.set_help_clusters))
+        self.help_report_completer = QCompleter(list(self.set_help_report))
+        self.help_clusters_report_completer = QCompleter(list(self.set_help_clusters | self.set_help_report))
+
+    def reset(self):
+        self.set_clusters = set()
+        self.set_report = set()
+        self.set_correcting_parameters = set()
+
+        self.clusters_completer = QCompleter(list())
+        self.report_completer = QCompleter(list())
+        self.clusters_report_completer = QCompleter(list())
+        self.graphs_completer = QCompleter(list())
+
+    def update_clusters(self, new_set):
+        self.set_clusters = self.set_clusters | set(new_set)
+        self.clusters_completer.model().setStringList(list(self.set_clusters | self.set_correcting_parameters))
+        self.clusters_report_completer.model().setStringList(list(self.set_clusters | self.set_report | self.set_correcting_parameters))
+
+    def update_report(self, new_set):
+        self.set_report = self.set_report | set(new_set)
+        self.report_completer.model().setStringList(list(self.set_report))
+        self.clusters_report_completer.model().setStringList(list(self.set_clusters | self.set_report))
+
+    def update_correcting_parameters(self, tree_widget):
+        number_of_items = tree_widget.topLevelItemCount()
+        correcting_parameters=[]
+        for i in range(number_of_items):
+            item = tree_widget.topLevelItem(i)
+            correcting_parameters.append(item.text(0))
+
+        self.set_correcting_parameters = set(correcting_parameters)
+        self.clusters_completer.model().setStringList(list(self.set_clusters | self.set_correcting_parameters))
+        self.clusters_report_completer.model().setStringList(list(self.set_clusters | self.set_report | self.set_correcting_parameters))
+
+    def update_graphs(self, line):
+        list_line = line.text().split(";")
+        prefix = ";".join(list_line[:-1])
+        previous_set = self.set_clusters | self.set_correcting_parameters
+        if prefix=="":
+            self.graphs_completer.model().setStringList(list(previous_set))
+        else:
+            set_with_prefix = [prefix + ";" + name for name in previous_set]
+            self.graphs_completer.model().setStringList(set_with_prefix)
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
