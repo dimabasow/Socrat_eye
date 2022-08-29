@@ -1,12 +1,17 @@
+str_help = """Данная программа предназначена для построения хронологий, таблиц с ключевыми параметрами и графиков"""
+
+
 import sys
 import os
 import pickle
+import traceback
 import docx
 import json
 
 from PySide6.QtWidgets import QFileDialog, QDialog
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtWidgets import QApplication, QMainWindow, QTreeWidgetItem, QCompleter, QMessageBox
+from PySide6.QtCore import Qt, QThreadPool, QObject, Signal, Slot, QRunnable
+from PySide6.QtWidgets import QApplication, QMainWindow, QTreeWidgetItem, QCompleter, QMessageBox, QMenu
+from PySide6.QtGui import QAction, QTextCursor
 
 from ui_main_window import Ui_MainWindow
 from socrat_eye import Socrat_calculation, Trap_calculation, Series_of_calculations
@@ -15,31 +20,47 @@ from chrono_edit_window import Ui_Dialog_chrono_edit
 from key_parameters_edit_window import Ui_Dialog_key_parameters_edit
 from correcting_edit_window import Ui_Dialog_correcting_edit
 
-
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        # Создание менеджера пула
+        self.thread_manager = QThreadPool()
+        self.ui.button_stop.clicked.connect(self.stop_run)
+        # Перенаправление потока вывода
+        stdout = OutputWrapper(self, True)
+        stdout.outputWritten.connect(self.handleOutput)
+        stderr = OutputWrapper(self, False)
+        stderr.outputWritten.connect(self.handleOutput)
+
+        # Справка
+        print(str_help)
+
         # Инициализация списка с расчётами
         self.calculations = []
 
+        # Инициализация буфера расчетов
+        self.contextData = []
+        # Инициализация буфера с корректируемыми параметрами
+        self.contextCorrecting = []
+        # Инициализация буфера графиков
+        self.contextGraphs = []
+        # Инициализация буфера хронологий
+        self.contextChrono = []
+        # Инициализация буфера ключевых параметров
+        self.contextKeyParameters = []
+
         # Инициализация completer
         self.completer = Completers()
-
         # Подключение полей к completer для автодополнения
-
         # Глобальная обрезка снизу
         self.ui.line_cut_down_name.setCompleter(self.completer.clusters_completer)
         self.ui.line_cut_down_value.setCompleter(self.completer.help_clusters_completer)
-
         # Глобальная обрезка сверху
         self.ui.line_cut_up_name.setCompleter(self.completer.clusters_completer)
         self.ui.line_cut_up_value.setCompleter(self.completer.help_clusters_completer)
-
-
-
         # Ключевые параметры
         self.ui.line_key_parameter_name.setCompleter(self.completer.clusters_completer)
         self.ui.line_search_parameter_name.textChanged.connect(lambda:
@@ -56,7 +77,6 @@ class MainWindow(QMainWindow):
         # Обрезка сверху ключевых параметров
         self.ui.line_cut_up_key_parameters_name.setCompleter(self.completer.clusters_completer)
         self.ui.line_cut_up_key_parameters_value.setCompleter(self.completer.help_clusters_completer)
-
         # Хронология
         self.ui.line_chrono_parameter_name.textChanged.connect(lambda:
                                                                self.selection_completer_clusters_report(
@@ -66,18 +86,12 @@ class MainWindow(QMainWindow):
                                                                 self.selection_completer_help(
                                                                     self.ui.line_chrono_parameter_name,
                                                                     self.ui.line_chrono_parameter_value))
-
         # Обрезка хронологий снизу
         self.ui.line_cut_down_chrono_name.setCompleter(self.completer.clusters_completer)
         self.ui.line_cut_down_chrono_value.setCompleter(self.completer.help_clusters_completer)
-
         # Обрезка хронологий сверху
         self.ui.line_cut_up_chrono_name.setCompleter(self.completer.clusters_completer)
         self.ui.line_cut_up_chrono_value.setCompleter(self.completer.help_clusters_completer)
-
-
-
-
 
         # Корректируемые параметры
         # связь с completer
@@ -87,7 +101,6 @@ class MainWindow(QMainWindow):
             lambda: self.completer.update_correcting_parameters(self.ui.treeWidget_corrected_parameters))
         self.ui.tabWidget_main.currentChanged.connect(
             lambda: self.completer.update_correcting_parameters(self.ui.treeWidget_corrected_parameters))
-
         # Графики
         self.ui.line_graphs_x_names.setCompleter(self.completer.graphs_completer)
         self.ui.line_graphs_x_names.textChanged.connect(
@@ -97,6 +110,7 @@ class MainWindow(QMainWindow):
         self.ui.line_graphs_y_names.textChanged.connect(
             lambda: self.completer.update_graphs(self.ui.line_graphs_y_names))
 
+
         # Подключение общих кнопок
         # Кнопка для выбора пути сохранения результатов
         self.ui.button_path_save.clicked.connect(
@@ -104,7 +118,7 @@ class MainWindow(QMainWindow):
         # Кнопка для предзагрузки
         self.ui.button_pre_run.clicked.connect(self.pre_run)
         # Кнопка выполнить
-        self.ui.button_execute.clicked.connect(self.run_programm)
+        self.ui.button_execute.clicked.connect(lambda: self.run_function_safely(self.run_programm))
 
         # Вкладка Данные
         # подключение кнопок для открытия файлов и папок
@@ -113,22 +127,23 @@ class MainWindow(QMainWindow):
             lambda: self.ui.line_path_to_result.setText(QFileDialog.getExistingDirectory()))
         # Кнопка для выбора пути с бинарными результатами
         self.ui.button_path_to_sackle.clicked.connect(self.open_sackle_file)
-
         # подключение кнопок для добавления расчётов
         self.ui.button_add_sackle.clicked.connect(self.add_sockle_file)
         self.ui.button_add_result.clicked.connect(self.add_result_folder)
-
         # Подключение кнопок для сброса и удаления расчётов
         self.ui.button_reset_data.clicked.connect(lambda: self.ui.treeWidget_calculations.clear())
         self.ui.button_del_chosen_data.clicked.connect(
             lambda: self.del_selected_elements(self.ui.treeWidget_calculations))
-
         # Перемещение вверх и вниз
         self.ui.button_up_data.clicked.connect(
             lambda: self.move_selected_up(self.ui.treeWidget_calculations))
         self.ui.button_down_data.clicked.connect(
             lambda: self.move_selected_down(self.ui.treeWidget_calculations))
-
+        # Подключение контекстного меню
+        self.ui.treeWidget_calculations.customContextMenuRequested.connect(
+            lambda position: self.open_context_menu(position,
+                                                    self.ui.treeWidget_calculations,
+                                                    self.contextData))
         # Вкладка Обработка
         # Подключение кнопок для добавления параметров
         self.ui.button_corrected_parameters_add.clicked.connect(self.add_corected_parameter)
@@ -138,6 +153,7 @@ class MainWindow(QMainWindow):
         self.ui.button_corrected_parameters_del.clicked.connect(
             lambda: self.del_selected_elements(self.ui.treeWidget_corrected_parameters))
 
+        # Импорт и экспорт настроек
         self.ui.button_export_cfg.clicked.connect(self.save_cfg)
         self.ui.button_import_cfg.clicked.connect(self.open_sfg)
         # Редактирование при двойном клике
@@ -146,6 +162,12 @@ class MainWindow(QMainWindow):
         # Перемещение вверх и вниз
         self.ui.button_up_correcting.clicked.connect(lambda : self.move_selected_up(self.ui.treeWidget_corrected_parameters))
         self.ui.button_down_correcting.clicked.connect(lambda: self.move_selected_down(self.ui.treeWidget_corrected_parameters))
+
+        # Подключение контекстного меню
+        self.ui.treeWidget_corrected_parameters.customContextMenuRequested.connect(
+            lambda position: self.open_context_menu(position,
+                                                    self.ui.treeWidget_corrected_parameters,
+                                                    self.contextCorrecting))
 
         # Вкладка Графики
         # Подключение кнопок для добавления графиков
@@ -159,6 +181,15 @@ class MainWindow(QMainWindow):
         # Редактирование при двойном клике
         self.ui.treeWidget_graphs_single.itemDoubleClicked.connect(self.edit_graph)
         self.ui.treeWidget_graphs_multy.itemDoubleClicked.connect(self.edit_graph)
+        # Подключение контекстного меню
+        self.ui.treeWidget_graphs_single.customContextMenuRequested.connect(
+            lambda position: self.open_context_menu(position,
+                                                    self.ui.treeWidget_graphs_single,
+                                                    self.contextGraphs))
+        self.ui.treeWidget_graphs_multy.customContextMenuRequested.connect(
+            lambda position: self.open_context_menu(position,
+                                                    self.ui.treeWidget_graphs_multy,
+                                                    self.contextGraphs))
 
         # Вкладка Хронология
         # Подключение кнопок для добавления события
@@ -170,6 +201,15 @@ class MainWindow(QMainWindow):
         # Редактирование при двойном клике
         self.ui.treeWidget_chrono_single.itemDoubleClicked.connect(self.edit_chrono)
         self.ui.treeWidget_chrono_multy.itemDoubleClicked.connect(self.edit_chrono)
+        # Подключение контекстного меню
+        self.ui.treeWidget_chrono_single.customContextMenuRequested.connect(
+            lambda position: self.open_context_menu(position,
+                                                    self.ui.treeWidget_chrono_single,
+                                                    self.contextChrono))
+        self.ui.treeWidget_chrono_multy.customContextMenuRequested.connect(
+            lambda position: self.open_context_menu(position,
+                                                    self.ui.treeWidget_chrono_multy,
+                                                    self.contextChrono))
 
         # Вкладка Ключевые параметры
         # Подключение кнопок для добавления ключевых параметров
@@ -184,6 +224,22 @@ class MainWindow(QMainWindow):
         # Редактирование при двойном клике
         self.ui.treeWidget_key_parameters_single.itemDoubleClicked.connect(self.edit_key_parameter)
         self.ui.treeWidget_key_parameters_multy.itemDoubleClicked.connect(self.edit_key_parameter)
+        # Подключение контекстного меню
+        self.ui.treeWidget_key_parameters_single.customContextMenuRequested.connect(
+            lambda position: self.open_context_menu(position,
+                                                    self.ui.treeWidget_key_parameters_single,
+                                                    self.contextKeyParameters))
+        self.ui.treeWidget_key_parameters_multy.customContextMenuRequested.connect(
+            lambda position: self.open_context_menu(position,
+                                                    self.ui.treeWidget_key_parameters_multy,
+                                                    self.contextKeyParameters))
+
+    # метод для перенаправления вывода
+    def handleOutput(self, text, stdout):
+        self.ui.textBrowser_terminal.moveCursor(QTextCursor.End)
+        self.ui.textBrowser_terminal.setTextColor(Qt.black if stdout else Qt.red)
+        self.ui.textBrowser_terminal.insertPlainText(text)
+        self.ui.textBrowser_terminal.setTextColor(Qt.black)
 
     # методы для автодополнений
     # метод, который будет возвращать completer в поле с названием в зависимости от поля значений
@@ -218,32 +274,78 @@ class MainWindow(QMainWindow):
 
     # методы для общих кнопок
     # метод для удаления выбранных полей
-    def del_selected_elements(self, tree):
+    def del_selected_elements (self, tree):
         selected_items = tree.selectedItems()
         for item in selected_items:
             index = tree.indexOfTopLevelItem(item)
             tree.takeTopLevelItem(index)
 
+    def past_selected_elements (self, tree, buffer):
+        selected_items = tree.selectedItems()
+        selected_indexes = [tree.indexOfTopLevelItem(item) for item in selected_items]
+        if not selected_indexes:
+            selected_indexes = [tree.topLevelItemCount()]
+        index = selected_indexes[-1]
+        if buffer:
+            if buffer[0].treeWidget() is not tree:
+                buffer[:] = [item.clone() for item in buffer]
+            tree.insertTopLevelItems(index, tuple(buffer))
+        self.reset_index_graphs()
+
+    def copy_selected_elements (self, tree, buffer):
+        buffer[:] = tree.selectedItems()
+
+    def cut_selected_elements(self, tree, buffer):
+        self.copy_selected_elements(tree,buffer)
+        self.del_selected_elements(tree)
+        self.reset_index_graphs()
+    def select_all_elements(self, tree):
+        for i in range(tree.topLevelItemCount()): tree.topLevelItem(i).setSelected(True)
+
     # метод для перемещения элемента вверх
     def move_selected_up(self, tree):
         selected_items = tree.selectedItems()
-        if len(selected_items) > 0:
-            selected_index = tree.indexOfTopLevelItem(selected_items[0])
-            if selected_index > 0:
-                tree.takeTopLevelItem(selected_index)
-                tree.insertTopLevelItem(selected_index - 1, selected_items[0])
-                tree.clearSelection()
-                tree.topLevelItem(selected_index - 1).setSelected(True)
+        selected_indexes = [tree.indexOfTopLevelItem(item) for item in selected_items]
+        if selected_indexes and min(selected_indexes)>0:
+            tree.clearSelection()
+            for i in selected_indexes:
+                item = tree.takeTopLevelItem(i)
+                tree.insertTopLevelItem(i-1, item)
+            for item in selected_items:
+                item.setSelected(True)
+
     # метод для перемещения элемента вниз
     def move_selected_down(self, tree):
         selected_items = tree.selectedItems()
-        if len(selected_items) > 0:
-            selected_index = tree.indexOfTopLevelItem(selected_items[0])
-            if selected_index < tree.topLevelItemCount() - 1:
-                tree.takeTopLevelItem(selected_index)
-                tree.insertTopLevelItem(selected_index + 1, selected_items[0])
-                tree.clearSelection()
-                tree.topLevelItem(selected_index + 1).setSelected(True)
+        selected_indexes = [tree.indexOfTopLevelItem(item) for item in selected_items]
+        if selected_indexes and max(selected_indexes) < tree.topLevelItemCount() - 1:
+            tree.clearSelection()
+            for i in selected_indexes[::-1]:
+                item = tree.takeTopLevelItem(i)
+                tree.insertTopLevelItem(i+1, item)
+            for item in selected_items:
+                item.setSelected(True)
+
+
+    # метод для вызова контекстного меню
+    def open_context_menu(self, position, tree, buffer):
+        menu = QMenu()
+        menu_cut = QAction("Вырезать", self)
+        menu_copy = QAction("Копировать", self)
+        menu_past = QAction("Вставить", self)
+        menu_select_all = QAction("Выделить все", self)
+
+        menu.addActions((menu_cut,menu_copy,menu_past,menu_select_all))
+        menu_cut.triggered.connect(lambda: self.cut_selected_elements(tree, buffer))
+        menu_copy.triggered.connect(lambda: self.copy_selected_elements(tree, buffer))
+        menu_past.triggered.connect(lambda: self.past_selected_elements(tree, buffer))
+        menu_select_all.triggered.connect(lambda: self.select_all_elements(tree))
+
+        menu.exec(tree.viewport().mapToGlobal(position))
+
+
+
+
 
     # Вкладка Данные
     # методы для открытия файлов и папок
@@ -375,6 +477,8 @@ class MainWindow(QMainWindow):
             config_dict["Key_parameters_multy"].append([])
             for k in range(item.columnCount()):
                 config_dict["Key_parameters_multy"][-1].append(item.text(k))
+
+
         file_name = QFileDialog.getSaveFileName(self, "Сохранить файл", "", "Файлы конфигурации (*.json)")[0]
         if len(file_name) > 0:
             with open(file_name, "w", encoding="utf8") as config_file:
@@ -385,7 +489,6 @@ class MainWindow(QMainWindow):
         if len(path) > 0:
             with open(path, encoding="utf8") as json_file:
                 config_dict=json.load(json_file)
-
 
             # Корректируемые параметры
             self.ui.treeWidget_corrected_parameters.clear()
@@ -681,6 +784,7 @@ class MainWindow(QMainWindow):
 
     # метод для предварительной загрузки
     def pre_run(self):
+        self.stopped = False
         # Список для хранения прочитанных данных
         dict_list=[]
         # функция для обработки cut_down и cut_up
@@ -717,6 +821,8 @@ class MainWindow(QMainWindow):
                 dict_list[k]["calc_object"] = calc_object_list[i]
 
         for item_dict in dict_list:
+            if self.stopped:
+                return
             if not "calc_object" in item_dict:
                 if item_dict["path"].endswith(".sokle"):
                     with open(item_dict["path"], 'rb') as f:
@@ -749,11 +855,9 @@ class MainWindow(QMainWindow):
                 item_dict["calc_object"]=calc
 
         self.calculations = dict_list
-
-
     # метод для БОЛЬШОЙ КНОПКИ Выполнить
     def run_programm(self):
-
+        self.stopped = False
         # функция для обработки cut_down и cut_up
         def cut_str_to_dict(cut_str):
             name, value = cut_str.split(";")
@@ -807,7 +911,6 @@ class MainWindow(QMainWindow):
 
         # Предварительная загрузка:
         self.pre_run()
-
 
         # Получение параметров с вкладки Обработка
         corrected_parameters = []
@@ -928,14 +1031,14 @@ class MainWindow(QMainWindow):
         else:
             graphs_width = float(graphs_width)
         number_delim = self.ui.line_numbers_delim.text()
-        font_name = self.ui.line_font_name.text()
-        if font_name == "":
+        font_name = self.ui.comboBox_font_name.currentText()
+        if not font_name:
             font_name = "Times New Roman"
-        font_value = self.ui.line_font_value.text()
-        if font_value == "":
-            font_value = 12
-        else:
+        font_value = self.ui.comboBox_font_value.currentText()
+        if font_value.isdigit():
             font_value = float(font_value)
+        else:
+            font_value = 12
         check_round_chrono = self.ui.checkBox_round_chrono.checkState()
         check_round_key_parameters = self.ui.checkBox_round_key_parameters.checkState()
 
@@ -949,18 +1052,25 @@ class MainWindow(QMainWindow):
         os.chdir(path_save)
         # Обработка результатов
         for calculation in self.calculations:
+            if self.stopped:
+                return
 
             calc=calculation["calc_object"]
-
+            if self.stopped:
+                return
             # Обрезка снизу и сверху
             calc.cut_bottom_transform(calculation["cut_down"]["name"], calculation["cut_down"]["value"])
             calc.cut_top_transform(calculation["cut_up"]["name"], calculation["cut_up"]["value"])
+            if self.stopped:
+                return
             # При необходимости сохранение в бинарном виде
             if not calculation["path"].endswith(".sokle"):
                 calc.save(name=calculation["name"])
 
             # Корректировка
             for corrected_parameter in corrected_parameters:
+                if self.stopped:
+                    return
                 integral = False
                 derivative = False
                 if corrected_parameter["extra_operations"]==self.ui.radioButton_integral.text():
@@ -972,7 +1082,7 @@ class MainWindow(QMainWindow):
                                        integral=integral, derivative=derivative)
 
 
-
+            # Построение графиков
             if len(graphs_single)>0:
                 # Открытие папки для сохранения в режиме Single
                 if not os.path.exists(calculation["name"]):
@@ -980,6 +1090,8 @@ class MainWindow(QMainWindow):
                 os.chdir(calculation["name"])
                 # Построение графиков Single
                 for graph_single in graphs_single:
+                    if self.stopped:
+                        return
                     print(graph_single)
                     calc.graph(GrName=graph_single["number"],
                                x_names=graph_single["x_name"],
@@ -998,8 +1110,12 @@ class MainWindow(QMainWindow):
                                stpy=graph_single["y_step"],
                                empty_graphs=self.ui.checkBox_empty_graphs.isChecked())
 
+            if self.stopped:
+                return
             # Построение хронологий и ключевых параметров Single
             calc.make_chrono(chrono_single)
+            if self.stopped:
+                return
             calc.make_key_table(key_parameters_single)
 
             # Округление Single
@@ -1013,6 +1129,9 @@ class MainWindow(QMainWindow):
 
             # Сохранение в Word Single
             doc = docx.Document()
+            style = doc.styles['Normal']
+            style.font.name = font_name
+            style.font.size = docx.shared.Pt(font_value)
 
             # Сохранение хронологии Single
             if len(calc.chrono_table) > 0:
@@ -1047,9 +1166,11 @@ class MainWindow(QMainWindow):
 
             # Сохранение графиков Single
             for k in range(len(calc.graph_list)):
-                doc.add_picture(calc.graph_list[k]["png"], width=docx.shared.Cm(graphs_width))
+                path_to_png = calc.graph_list[k]["png"]
+                index_png = int(os.path.basename(path_to_png).replace(".png",""))-1
+                doc.add_picture(path_to_png, width=docx.shared.Cm(graphs_width))
                 doc.add_paragraph(
-                    "Рисунок {}\n{}".format(str(k + 1), graphs_single[k]["description"]))
+                    "Рисунок {}\n{}".format(str(k + 1), graphs_single[index_png]["description"]))
 
             # Запись Word Single
             if len(calc.graph_list)>0 or len(calc.key_parameters_table) or len(calc.chrono_table) >0:
@@ -1067,7 +1188,11 @@ class MainWindow(QMainWindow):
             calc.reset_data()
 
             # Построение хронологий и ключевых параметров Multy
+            if self.stopped:
+                return
             calc.make_chrono(chrono_multy)
+            if self.stopped:
+                return
             calc.make_key_table(key_parameters_multy)
 
             # Округление Multy
@@ -1081,6 +1206,7 @@ class MainWindow(QMainWindow):
         # Создание объекта для хранения Multy
         calculation_series = Series_of_calculations(calculations_list)
 
+        # Построение графиков
         if len(graphs_multy)>0:
             # Открытие папки для сохранения в режиме Multy
             if not os.path.exists(file_save_name):
@@ -1088,6 +1214,8 @@ class MainWindow(QMainWindow):
             os.chdir(file_save_name)
             # Отрисовка графиков Multy
             for graph_multy in graphs_multy:
+                if self.stopped:
+                    return
                 calculation_series.graph(GrName=graph_multy["number"],
                                          x_names=graph_multy["x_name"],
                                          y_names=graph_multy["y_name"],
@@ -1110,6 +1238,9 @@ class MainWindow(QMainWindow):
 
         # Сохранение в Word Multy
         doc = docx.Document()
+        style = doc.styles['Normal']
+        style.font.name = font_name
+        style.font.size = docx.shared.Pt(font_value)
 
         # Расшифровка чисел
         numbers_to_names=["{} - {}".format(str(i+1),self.calculations[i]["name"]) for i in range(len(self.calculations))]
@@ -1150,8 +1281,10 @@ class MainWindow(QMainWindow):
         if len(calculation_series.graph_list) > 0:
             doc.add_page_break()
             for k in range(len(calculation_series.graph_list)):
-                doc.add_picture(calculation_series.graph_list[k]["png"], width=docx.shared.Cm(graphs_width))
-                doc.add_paragraph("Рисунок {}\n{}".format(str(k + 1), graphs_multy[k]["description"]))
+                path_to_png = calculation_series.graph_list[k]["png"]
+                index_png = int(os.path.basename(path_to_png).replace(".png", ""))-1
+                doc.add_picture(path_to_png, width=docx.shared.Cm(graphs_width))
+                doc.add_paragraph("Рисунок {}\n{}".format(str(k + 1), graphs_multy[index_png]["description"]))
 
         # Запись Word Multy
         if len(calculation_series.graph_list) > 0 or len(calculation_series.key_parameters_table) or len(calculation_series.chrono_table) > 0:
@@ -1164,8 +1297,63 @@ class MainWindow(QMainWindow):
                 except:
                     print("Файл {} в данный момент открыт".format(doc_name))
                     self.show_message_window("Файл {} в данный момент открыт".format(doc_name))
-        print("\n\n\nГотово")
-        self.show_message_window("Готово")
+        os.startfile(path_save)
+    # метод для запуска выполнения на отдельном потоке выполнения программы
+    def run_function_safely(self, fn):
+        worker = Worker(fn)
+        self.set_interface_freezed(True)
+        # worker.signals.result.connect(lambda: self.show_message_window("Готово"))
+        worker.signals.finished.connect(lambda: self.set_interface_freezed(False))
+        self.thread_manager.start(worker)
+    # метод для заморозки интерфейса
+    def set_interface_freezed(self, state):
+        if state:
+            self.ui.button_execute.setDisabled(True)
+            self.ui.button_pre_run.setDisabled(True)
+            self.ui.button_path_save.setDisabled(True)
+            self.ui.line_path_to_save.setDisabled(True)
+            for i in range(self.ui.tabWidget_main.count()):
+                self.ui.tabWidget_main.widget(i).setDisabled(True)
+        else:
+            self.ui.button_execute.setEnabled(True)
+            self.ui.button_pre_run.setEnabled(True)
+            self.ui.button_path_save.setEnabled(True)
+            self.ui.line_path_to_save.setEnabled(True)
+            for i in range(self.ui.tabWidget_main.count()):
+                self.ui.tabWidget_main.widget(i).setEnabled(True)
+    # метод для остановки расчета
+    def stop_run(self):
+        self.stopped = True
+
+# Обертка для перенаправления потока вывода
+class OutputWrapper(QObject):
+    outputWritten = Signal(object,object)
+
+    def __init__(self, parent, stdout = True):
+        super().__init__(parent)
+        if stdout:
+            self._stream = sys.stdout
+            sys.stdout = self
+        else:
+            self._stream = sys.stderr
+            sys.stderr = self
+        self._stdout = stdout
+    def write(self, text):
+        self._stream.write(text)
+        self.outputWritten.emit(text, self._stdout)
+
+    def __getattr__(self, name):
+        return getattr(self._stream, name)
+
+    def __del__(self):
+        try:
+            if self._stdout:
+                sys.stdout = self._stream
+            else:
+                sys.stderr = self._stream
+        except AttributeError:
+            pass
+
 
 class GraphEditDlg(Ui_Dialog_graphs_edit, QDialog):
     def __init__(self, item, parent=None):
@@ -1337,11 +1525,30 @@ class Completers():
             self.graphs_completer.model().setStringList(set_with_prefix)
 
 
+class Worker(QRunnable):
+    def __init__(self, fn, *args, **kwargs):
+        super(Worker, self).__init__()
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
+        self.signals = WorkerSignals()
+    @Slot()
+    def run(self):
+        try:
+            result = self.fn(*self.args, **self.kwargs)
+        except:
+            traceback.print_exc()
+            exctype, value = sys.exc_info()[:2]
+            self.signals.error.emit((exctype, value, traceback.format_exc()))
+        else:
+            self.signals.result.emit(result)
+        finally:
+            self.signals.finished.emit()
 
-
-
-
-
+class WorkerSignals(QObject):
+    finished = Signal()
+    error = Signal(tuple)
+    result = Signal(object)
 
 
 if __name__ == '__main__':
@@ -1349,3 +1556,5 @@ if __name__ == '__main__':
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
+
+

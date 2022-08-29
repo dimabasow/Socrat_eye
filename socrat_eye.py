@@ -88,11 +88,11 @@ def graph (GrName, get_x, get_y, lablex="t, s", labley="", x1=None, y1=None, x2=
     pylab.ylim (ymin = y1, ymax=y2)
     #Настраиваем оси
     #Устанавливаем интервал делений x:
-    if stpx!=None:
+    if stpx is not None:
         ax.xaxis.set_major_locator(ticker.MultipleLocator(stpx))
         ax.xaxis.set_minor_locator(ticker.MultipleLocator(stpx/5))
     #Устанавливаем интервал делений y:
-    if stpy!=None:
+    if stpy is not None:
         ax.yaxis.set_major_locator(ticker.MultipleLocator(stpy))
         ax.yaxis.set_minor_locator(ticker.MultipleLocator(stpy/5))
 
@@ -118,17 +118,6 @@ def graph (GrName, get_x, get_y, lablex="t, s", labley="", x1=None, y1=None, x2=
     fmt = 'png'
     path_dict[fmt]=os.path.abspath(os.curdir)+"\\"+GrName + "." +fmt
     fig.savefig('{}.{}'.format(GrName, fmt), format=fmt, bbox_inches='tight')
-    # сохранение .pdf
-#    fmt = 'pdf'
-#    pwd = os.getcwd()
-#    iPath = '{}'.format(fmt)
-#    if not os.path.exists(iPath):
-#        os.mkdir(iPath)
-#    os.chdir(iPath)
-#    path_dict[fmt]=os.path.abspath(os.curdir) + "\\" + GrName + "." +fmt
-    #fig.savefig('{}.{}'.format(name, fmt), fmt='png')
-#    fig.savefig('{}.{}'.format(GrName, fmt), format='pdf', bbox_inches='tight')
-#    os.chdir(pwd)
     plt.close()
     
     return path_dict
