@@ -18,7 +18,7 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.setWindowModality(Qt.NonModal)
-        MainWindow.resize(880, 912)
+        MainWindow.resize(880, 917)
         icon = QIcon()
         icon.addFile(u"icon.ico", QSize(), QIcon.Normal, QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -93,6 +93,16 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_21.addWidget(self.button_down_data)
 
+        self.button_del_chosen_data = QPushButton(self.tab_data)
+        self.button_del_chosen_data.setObjectName(u"button_del_chosen_data")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.button_del_chosen_data.sizePolicy().hasHeightForWidth())
+        self.button_del_chosen_data.setSizePolicy(sizePolicy2)
+
+        self.horizontalLayout_21.addWidget(self.button_del_chosen_data)
+
 
         self.verticalLayout_11.addLayout(self.horizontalLayout_21)
 
@@ -110,18 +120,18 @@ class Ui_MainWindow(object):
 
         self.line_cut_down_name = QLineEdit(self.tab_data)
         self.line_cut_down_name.setObjectName(u"line_cut_down_name")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.line_cut_down_name.sizePolicy().hasHeightForWidth())
-        self.line_cut_down_name.setSizePolicy(sizePolicy2)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.line_cut_down_name.sizePolicy().hasHeightForWidth())
+        self.line_cut_down_name.setSizePolicy(sizePolicy3)
 
         self.horizontalLayout_6.addWidget(self.line_cut_down_name)
 
         self.line_cut_down_value = QLineEdit(self.tab_data)
         self.line_cut_down_value.setObjectName(u"line_cut_down_value")
-        sizePolicy2.setHeightForWidth(self.line_cut_down_value.sizePolicy().hasHeightForWidth())
-        self.line_cut_down_value.setSizePolicy(sizePolicy2)
+        sizePolicy3.setHeightForWidth(self.line_cut_down_value.sizePolicy().hasHeightForWidth())
+        self.line_cut_down_value.setSizePolicy(sizePolicy3)
 
         self.horizontalLayout_6.addWidget(self.line_cut_down_value)
 
@@ -137,15 +147,15 @@ class Ui_MainWindow(object):
 
         self.line_cut_up_name = QLineEdit(self.tab_data)
         self.line_cut_up_name.setObjectName(u"line_cut_up_name")
-        sizePolicy2.setHeightForWidth(self.line_cut_up_name.sizePolicy().hasHeightForWidth())
-        self.line_cut_up_name.setSizePolicy(sizePolicy2)
+        sizePolicy3.setHeightForWidth(self.line_cut_up_name.sizePolicy().hasHeightForWidth())
+        self.line_cut_up_name.setSizePolicy(sizePolicy3)
 
         self.horizontalLayout_19.addWidget(self.line_cut_up_name)
 
         self.line_cut_up_value = QLineEdit(self.tab_data)
         self.line_cut_up_value.setObjectName(u"line_cut_up_value")
-        sizePolicy2.setHeightForWidth(self.line_cut_up_value.sizePolicy().hasHeightForWidth())
-        self.line_cut_up_value.setSizePolicy(sizePolicy2)
+        sizePolicy3.setHeightForWidth(self.line_cut_up_value.sizePolicy().hasHeightForWidth())
+        self.line_cut_up_value.setSizePolicy(sizePolicy3)
 
         self.horizontalLayout_19.addWidget(self.line_cut_up_value)
 
@@ -155,11 +165,8 @@ class Ui_MainWindow(object):
         self.tabs_add_calculatuons = QTabWidget(self.tab_data)
         self.tabs_add_calculatuons.setObjectName(u"tabs_add_calculatuons")
         self.tabs_add_calculatuons.setEnabled(True)
-        sizePolicy3 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.tabs_add_calculatuons.sizePolicy().hasHeightForWidth())
-        self.tabs_add_calculatuons.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.tabs_add_calculatuons.sizePolicy().hasHeightForWidth())
+        self.tabs_add_calculatuons.setSizePolicy(sizePolicy2)
         self.tabs_add_calculatuons.setLayoutDirection(Qt.LeftToRight)
         self.tab_result = QWidget()
         self.tab_result.setObjectName(u"tab_result")
@@ -173,15 +180,15 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.line_name_calc = QLineEdit(self.tab_result)
         self.line_name_calc.setObjectName(u"line_name_calc")
-        sizePolicy3.setHeightForWidth(self.line_name_calc.sizePolicy().hasHeightForWidth())
-        self.line_name_calc.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_name_calc.sizePolicy().hasHeightForWidth())
+        self.line_name_calc.setSizePolicy(sizePolicy2)
 
         self.verticalLayout_4.addWidget(self.line_name_calc)
 
         self.line_path_to_result = QLineEdit(self.tab_result)
         self.line_path_to_result.setObjectName(u"line_path_to_result")
-        sizePolicy3.setHeightForWidth(self.line_path_to_result.sizePolicy().hasHeightForWidth())
-        self.line_path_to_result.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_path_to_result.sizePolicy().hasHeightForWidth())
+        self.line_path_to_result.setSizePolicy(sizePolicy2)
 
         self.verticalLayout_4.addWidget(self.line_path_to_result)
 
@@ -190,8 +197,8 @@ class Ui_MainWindow(object):
 
         self.button_path_to_calc = QPushButton(self.tab_result)
         self.button_path_to_calc.setObjectName(u"button_path_to_calc")
-        sizePolicy2.setHeightForWidth(self.button_path_to_calc.sizePolicy().hasHeightForWidth())
-        self.button_path_to_calc.setSizePolicy(sizePolicy2)
+        sizePolicy3.setHeightForWidth(self.button_path_to_calc.sizePolicy().hasHeightForWidth())
+        self.button_path_to_calc.setSizePolicy(sizePolicy3)
 
         self.horizontalLayout_3.addWidget(self.button_path_to_calc)
 
@@ -200,8 +207,8 @@ class Ui_MainWindow(object):
 
         self.button_add_result = QPushButton(self.tab_result)
         self.button_add_result.setObjectName(u"button_add_result")
-        sizePolicy3.setHeightForWidth(self.button_add_result.sizePolicy().hasHeightForWidth())
-        self.button_add_result.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.button_add_result.sizePolicy().hasHeightForWidth())
+        self.button_add_result.setSizePolicy(sizePolicy2)
 
         self.verticalLayout_5.addWidget(self.button_add_result)
 
@@ -219,15 +226,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.line_path_to_sackle = QLineEdit(self.tab_sockle)
         self.line_path_to_sackle.setObjectName(u"line_path_to_sackle")
-        sizePolicy3.setHeightForWidth(self.line_path_to_sackle.sizePolicy().hasHeightForWidth())
-        self.line_path_to_sackle.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_path_to_sackle.sizePolicy().hasHeightForWidth())
+        self.line_path_to_sackle.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_2.addWidget(self.line_path_to_sackle)
 
         self.button_path_to_sackle = QPushButton(self.tab_sockle)
         self.button_path_to_sackle.setObjectName(u"button_path_to_sackle")
-        sizePolicy2.setHeightForWidth(self.button_path_to_sackle.sizePolicy().hasHeightForWidth())
-        self.button_path_to_sackle.setSizePolicy(sizePolicy2)
+        sizePolicy3.setHeightForWidth(self.button_path_to_sackle.sizePolicy().hasHeightForWidth())
+        self.button_path_to_sackle.setSizePolicy(sizePolicy3)
 
         self.horizontalLayout_2.addWidget(self.button_path_to_sackle)
 
@@ -236,8 +243,8 @@ class Ui_MainWindow(object):
 
         self.button_add_sackle = QPushButton(self.tab_sockle)
         self.button_add_sackle.setObjectName(u"button_add_sackle")
-        sizePolicy3.setHeightForWidth(self.button_add_sackle.sizePolicy().hasHeightForWidth())
-        self.button_add_sackle.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.button_add_sackle.sizePolicy().hasHeightForWidth())
+        self.button_add_sackle.setSizePolicy(sizePolicy2)
 
         self.verticalLayout_3.addWidget(self.button_add_sackle)
 
@@ -260,25 +267,6 @@ class Ui_MainWindow(object):
         self.frame_2.setLineWidth(0)
 
         self.verticalLayout_9.addWidget(self.frame_2)
-
-        self.horizontalLayout_5 = QHBoxLayout()
-        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.button_del_chosen_data = QPushButton(self.tab_data)
-        self.button_del_chosen_data.setObjectName(u"button_del_chosen_data")
-        sizePolicy3.setHeightForWidth(self.button_del_chosen_data.sizePolicy().hasHeightForWidth())
-        self.button_del_chosen_data.setSizePolicy(sizePolicy3)
-
-        self.horizontalLayout_5.addWidget(self.button_del_chosen_data)
-
-        self.button_reset_data = QPushButton(self.tab_data)
-        self.button_reset_data.setObjectName(u"button_reset_data")
-        sizePolicy3.setHeightForWidth(self.button_reset_data.sizePolicy().hasHeightForWidth())
-        self.button_reset_data.setSizePolicy(sizePolicy3)
-
-        self.horizontalLayout_5.addWidget(self.button_reset_data)
-
-
-        self.verticalLayout_9.addLayout(self.horizontalLayout_5)
 
 
         self.horizontalLayout_22.addLayout(self.verticalLayout_9)
@@ -316,6 +304,11 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_18.addWidget(self.button_down_correcting)
 
+        self.button_corrected_parameters_del = QPushButton(self.tab_correcting)
+        self.button_corrected_parameters_del.setObjectName(u"button_corrected_parameters_del")
+
+        self.horizontalLayout_18.addWidget(self.button_corrected_parameters_del)
+
 
         self.verticalLayout_6.addLayout(self.horizontalLayout_18)
 
@@ -331,8 +324,8 @@ class Ui_MainWindow(object):
 
         self.line_corrected_parameters_name = QLineEdit(self.tab_correcting)
         self.line_corrected_parameters_name.setObjectName(u"line_corrected_parameters_name")
-        sizePolicy3.setHeightForWidth(self.line_corrected_parameters_name.sizePolicy().hasHeightForWidth())
-        self.line_corrected_parameters_name.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_corrected_parameters_name.sizePolicy().hasHeightForWidth())
+        self.line_corrected_parameters_name.setSizePolicy(sizePolicy2)
 
         self.verticalLayout.addWidget(self.line_corrected_parameters_name)
 
@@ -378,21 +371,6 @@ class Ui_MainWindow(object):
         self.button_corrected_parameters_add.setObjectName(u"button_corrected_parameters_add")
 
         self.verticalLayout.addWidget(self.button_corrected_parameters_add)
-
-        self.horizontalLayout_17 = QHBoxLayout()
-        self.horizontalLayout_17.setObjectName(u"horizontalLayout_17")
-        self.button_corrected_parameters_del = QPushButton(self.tab_correcting)
-        self.button_corrected_parameters_del.setObjectName(u"button_corrected_parameters_del")
-
-        self.horizontalLayout_17.addWidget(self.button_corrected_parameters_del)
-
-        self.button_corrected_parameters_reset = QPushButton(self.tab_correcting)
-        self.button_corrected_parameters_reset.setObjectName(u"button_corrected_parameters_reset")
-
-        self.horizontalLayout_17.addWidget(self.button_corrected_parameters_reset)
-
-
-        self.verticalLayout.addLayout(self.horizontalLayout_17)
 
 
         self.horizontalLayout_26.addLayout(self.verticalLayout)
@@ -470,6 +448,11 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_15.addWidget(self.button_down_graphs)
 
+        self.button_del_chosen_graphs = QPushButton(self.tab_graphs)
+        self.button_del_chosen_graphs.setObjectName(u"button_del_chosen_graphs")
+
+        self.horizontalLayout_15.addWidget(self.button_del_chosen_graphs)
+
 
         self.verticalLayout_23.addLayout(self.horizontalLayout_15)
 
@@ -482,8 +465,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
         self.label_5 = QLabel(self.tab_graphs)
         self.label_5.setObjectName(u"label_5")
-        sizePolicy3.setHeightForWidth(self.label_5.sizePolicy().hasHeightForWidth())
-        self.label_5.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.label_5.sizePolicy().hasHeightForWidth())
+        self.label_5.setSizePolicy(sizePolicy2)
         self.label_5.setAlignment(Qt.AlignCenter)
 
         self.verticalLayout_14.addWidget(self.label_5)
@@ -492,15 +475,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
         self.line_graphs_y_names = QLineEdit(self.tab_graphs)
         self.line_graphs_y_names.setObjectName(u"line_graphs_y_names")
-        sizePolicy3.setHeightForWidth(self.line_graphs_y_names.sizePolicy().hasHeightForWidth())
-        self.line_graphs_y_names.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_y_names.sizePolicy().hasHeightForWidth())
+        self.line_graphs_y_names.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_7.addWidget(self.line_graphs_y_names)
 
         self.line_graphs_x_names = QLineEdit(self.tab_graphs)
         self.line_graphs_x_names.setObjectName(u"line_graphs_x_names")
-        sizePolicy3.setHeightForWidth(self.line_graphs_x_names.sizePolicy().hasHeightForWidth())
-        self.line_graphs_x_names.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_x_names.sizePolicy().hasHeightForWidth())
+        self.line_graphs_x_names.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_7.addWidget(self.line_graphs_x_names)
 
@@ -514,8 +497,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_15.setObjectName(u"verticalLayout_15")
         self.label_6 = QLabel(self.tab_graphs)
         self.label_6.setObjectName(u"label_6")
-        sizePolicy3.setHeightForWidth(self.label_6.sizePolicy().hasHeightForWidth())
-        self.label_6.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.label_6.sizePolicy().hasHeightForWidth())
+        self.label_6.setSizePolicy(sizePolicy2)
         self.label_6.setAlignment(Qt.AlignCenter)
 
         self.verticalLayout_15.addWidget(self.label_6)
@@ -524,15 +507,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
         self.line_graphs_y_label = QLineEdit(self.tab_graphs)
         self.line_graphs_y_label.setObjectName(u"line_graphs_y_label")
-        sizePolicy3.setHeightForWidth(self.line_graphs_y_label.sizePolicy().hasHeightForWidth())
-        self.line_graphs_y_label.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_y_label.sizePolicy().hasHeightForWidth())
+        self.line_graphs_y_label.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_8.addWidget(self.line_graphs_y_label)
 
         self.line_graphs_x_label = QLineEdit(self.tab_graphs)
         self.line_graphs_x_label.setObjectName(u"line_graphs_x_label")
-        sizePolicy3.setHeightForWidth(self.line_graphs_x_label.sizePolicy().hasHeightForWidth())
-        self.line_graphs_x_label.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_x_label.sizePolicy().hasHeightForWidth())
+        self.line_graphs_x_label.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_8.addWidget(self.line_graphs_x_label)
 
@@ -546,8 +529,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_16.setObjectName(u"verticalLayout_16")
         self.label_8 = QLabel(self.tab_graphs)
         self.label_8.setObjectName(u"label_8")
-        sizePolicy3.setHeightForWidth(self.label_8.sizePolicy().hasHeightForWidth())
-        self.label_8.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.label_8.sizePolicy().hasHeightForWidth())
+        self.label_8.setSizePolicy(sizePolicy2)
         self.label_8.setAlignment(Qt.AlignCenter)
 
         self.verticalLayout_16.addWidget(self.label_8)
@@ -556,15 +539,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
         self.line_graphs_y_min = QLineEdit(self.tab_graphs)
         self.line_graphs_y_min.setObjectName(u"line_graphs_y_min")
-        sizePolicy3.setHeightForWidth(self.line_graphs_y_min.sizePolicy().hasHeightForWidth())
-        self.line_graphs_y_min.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_y_min.sizePolicy().hasHeightForWidth())
+        self.line_graphs_y_min.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_10.addWidget(self.line_graphs_y_min)
 
         self.line_graphs_y_max = QLineEdit(self.tab_graphs)
         self.line_graphs_y_max.setObjectName(u"line_graphs_y_max")
-        sizePolicy3.setHeightForWidth(self.line_graphs_y_max.sizePolicy().hasHeightForWidth())
-        self.line_graphs_y_max.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_y_max.sizePolicy().hasHeightForWidth())
+        self.line_graphs_y_max.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_10.addWidget(self.line_graphs_y_max)
 
@@ -578,8 +561,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_17.setObjectName(u"verticalLayout_17")
         self.label_7 = QLabel(self.tab_graphs)
         self.label_7.setObjectName(u"label_7")
-        sizePolicy3.setHeightForWidth(self.label_7.sizePolicy().hasHeightForWidth())
-        self.label_7.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.label_7.sizePolicy().hasHeightForWidth())
+        self.label_7.setSizePolicy(sizePolicy2)
         self.label_7.setAlignment(Qt.AlignCenter)
 
         self.verticalLayout_17.addWidget(self.label_7)
@@ -588,15 +571,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
         self.line_graphs_x_min = QLineEdit(self.tab_graphs)
         self.line_graphs_x_min.setObjectName(u"line_graphs_x_min")
-        sizePolicy3.setHeightForWidth(self.line_graphs_x_min.sizePolicy().hasHeightForWidth())
-        self.line_graphs_x_min.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_x_min.sizePolicy().hasHeightForWidth())
+        self.line_graphs_x_min.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_9.addWidget(self.line_graphs_x_min)
 
         self.line_graphs_x_max = QLineEdit(self.tab_graphs)
         self.line_graphs_x_max.setObjectName(u"line_graphs_x_max")
-        sizePolicy3.setHeightForWidth(self.line_graphs_x_max.sizePolicy().hasHeightForWidth())
-        self.line_graphs_x_max.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_x_max.sizePolicy().hasHeightForWidth())
+        self.line_graphs_x_max.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_9.addWidget(self.line_graphs_x_max)
 
@@ -612,8 +595,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.label_10 = QLabel(self.tab_graphs)
         self.label_10.setObjectName(u"label_10")
-        sizePolicy3.setHeightForWidth(self.label_10.sizePolicy().hasHeightForWidth())
-        self.label_10.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.label_10.sizePolicy().hasHeightForWidth())
+        self.label_10.setSizePolicy(sizePolicy2)
         self.label_10.setAlignment(Qt.AlignCenter)
 
         self.verticalLayout_19.addWidget(self.label_10)
@@ -622,15 +605,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
         self.line_graphs_y_mult = QLineEdit(self.tab_graphs)
         self.line_graphs_y_mult.setObjectName(u"line_graphs_y_mult")
-        sizePolicy3.setHeightForWidth(self.line_graphs_y_mult.sizePolicy().hasHeightForWidth())
-        self.line_graphs_y_mult.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_y_mult.sizePolicy().hasHeightForWidth())
+        self.line_graphs_y_mult.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_12.addWidget(self.line_graphs_y_mult)
 
         self.line_graphs_y_shift = QLineEdit(self.tab_graphs)
         self.line_graphs_y_shift.setObjectName(u"line_graphs_y_shift")
-        sizePolicy3.setHeightForWidth(self.line_graphs_y_shift.sizePolicy().hasHeightForWidth())
-        self.line_graphs_y_shift.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_y_shift.sizePolicy().hasHeightForWidth())
+        self.line_graphs_y_shift.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_12.addWidget(self.line_graphs_y_shift)
 
@@ -642,8 +625,8 @@ class Ui_MainWindow(object):
 
         self.label_9 = QLabel(self.tab_graphs)
         self.label_9.setObjectName(u"label_9")
-        sizePolicy3.setHeightForWidth(self.label_9.sizePolicy().hasHeightForWidth())
-        self.label_9.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.label_9.sizePolicy().hasHeightForWidth())
+        self.label_9.setSizePolicy(sizePolicy2)
         self.label_9.setAlignment(Qt.AlignCenter)
 
         self.verticalLayout_18.addWidget(self.label_9)
@@ -652,15 +635,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
         self.line_graphs_x_mult = QLineEdit(self.tab_graphs)
         self.line_graphs_x_mult.setObjectName(u"line_graphs_x_mult")
-        sizePolicy3.setHeightForWidth(self.line_graphs_x_mult.sizePolicy().hasHeightForWidth())
-        self.line_graphs_x_mult.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_x_mult.sizePolicy().hasHeightForWidth())
+        self.line_graphs_x_mult.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_11.addWidget(self.line_graphs_x_mult)
 
         self.line_graphs_x_shift = QLineEdit(self.tab_graphs)
         self.line_graphs_x_shift.setObjectName(u"line_graphs_x_shift")
-        sizePolicy3.setHeightForWidth(self.line_graphs_x_shift.sizePolicy().hasHeightForWidth())
-        self.line_graphs_x_shift.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_x_shift.sizePolicy().hasHeightForWidth())
+        self.line_graphs_x_shift.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_11.addWidget(self.line_graphs_x_shift)
 
@@ -674,8 +657,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_20.setObjectName(u"verticalLayout_20")
         self.label_11 = QLabel(self.tab_graphs)
         self.label_11.setObjectName(u"label_11")
-        sizePolicy3.setHeightForWidth(self.label_11.sizePolicy().hasHeightForWidth())
-        self.label_11.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.label_11.sizePolicy().hasHeightForWidth())
+        self.label_11.setSizePolicy(sizePolicy2)
         self.label_11.setAlignment(Qt.AlignCenter)
 
         self.verticalLayout_20.addWidget(self.label_11)
@@ -684,15 +667,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_13.setObjectName(u"horizontalLayout_13")
         self.line_graphs_y_step = QLineEdit(self.tab_graphs)
         self.line_graphs_y_step.setObjectName(u"line_graphs_y_step")
-        sizePolicy3.setHeightForWidth(self.line_graphs_y_step.sizePolicy().hasHeightForWidth())
-        self.line_graphs_y_step.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_y_step.sizePolicy().hasHeightForWidth())
+        self.line_graphs_y_step.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_13.addWidget(self.line_graphs_y_step)
 
         self.line_graphs_x_step = QLineEdit(self.tab_graphs)
         self.line_graphs_x_step.setObjectName(u"line_graphs_x_step")
-        sizePolicy3.setHeightForWidth(self.line_graphs_x_step.sizePolicy().hasHeightForWidth())
-        self.line_graphs_x_step.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_graphs_x_step.sizePolicy().hasHeightForWidth())
+        self.line_graphs_x_step.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_13.addWidget(self.line_graphs_x_step)
 
@@ -720,21 +703,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_13.addWidget(self.button_graphs_add)
 
-        self.horizontalLayout_14 = QHBoxLayout()
-        self.horizontalLayout_14.setObjectName(u"horizontalLayout_14")
-        self.button_del_chosen_graphs = QPushButton(self.tab_graphs)
-        self.button_del_chosen_graphs.setObjectName(u"button_del_chosen_graphs")
-
-        self.horizontalLayout_14.addWidget(self.button_del_chosen_graphs)
-
-        self.button_reset_graphs = QPushButton(self.tab_graphs)
-        self.button_reset_graphs.setObjectName(u"button_reset_graphs")
-
-        self.horizontalLayout_14.addWidget(self.button_reset_graphs)
-
-
-        self.verticalLayout_13.addLayout(self.horizontalLayout_14)
-
 
         self.horizontalLayout_16.addLayout(self.verticalLayout_13)
 
@@ -744,36 +712,46 @@ class Ui_MainWindow(object):
         self.tabWidget_main.addTab(self.tab_graphs, "")
         self.tab_chrono = QWidget()
         self.tab_chrono.setObjectName(u"tab_chrono")
-        self.horizontalLayout_28 = QHBoxLayout(self.tab_chrono)
-        self.horizontalLayout_28.setObjectName(u"horizontalLayout_28")
+        self.horizontalLayout_5 = QHBoxLayout(self.tab_chrono)
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.verticalLayout_34 = QVBoxLayout()
+        self.verticalLayout_34.setObjectName(u"verticalLayout_34")
         self.tab_chrono_list = QTabWidget(self.tab_chrono)
         self.tab_chrono_list.setObjectName(u"tab_chrono_list")
         self.tab_6 = QWidget()
         self.tab_6.setObjectName(u"tab_6")
-        self.horizontalLayout_34 = QHBoxLayout(self.tab_6)
-        self.horizontalLayout_34.setObjectName(u"horizontalLayout_34")
+        self.verticalLayout_40 = QVBoxLayout(self.tab_6)
+        self.verticalLayout_40.setObjectName(u"verticalLayout_40")
         self.treeWidget_chrono_single = QTreeWidget(self.tab_6)
         self.treeWidget_chrono_single.setObjectName(u"treeWidget_chrono_single")
         self.treeWidget_chrono_single.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeWidget_chrono_single.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-        self.horizontalLayout_34.addWidget(self.treeWidget_chrono_single)
+        self.verticalLayout_40.addWidget(self.treeWidget_chrono_single)
 
         self.tab_chrono_list.addTab(self.tab_6, "")
         self.tab_7 = QWidget()
         self.tab_7.setObjectName(u"tab_7")
-        self.verticalLayout_34 = QVBoxLayout(self.tab_7)
-        self.verticalLayout_34.setObjectName(u"verticalLayout_34")
+        self.verticalLayout_39 = QVBoxLayout(self.tab_7)
+        self.verticalLayout_39.setObjectName(u"verticalLayout_39")
         self.treeWidget_chrono_multy = QTreeWidget(self.tab_7)
         self.treeWidget_chrono_multy.setObjectName(u"treeWidget_chrono_multy")
         self.treeWidget_chrono_multy.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeWidget_chrono_multy.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-        self.verticalLayout_34.addWidget(self.treeWidget_chrono_multy)
+        self.verticalLayout_39.addWidget(self.treeWidget_chrono_multy)
 
         self.tab_chrono_list.addTab(self.tab_7, "")
 
-        self.horizontalLayout_28.addWidget(self.tab_chrono_list)
+        self.verticalLayout_34.addWidget(self.tab_chrono_list)
+
+        self.button_del_chosen_chrono_parameters = QPushButton(self.tab_chrono)
+        self.button_del_chosen_chrono_parameters.setObjectName(u"button_del_chosen_chrono_parameters")
+
+        self.verticalLayout_34.addWidget(self.button_del_chosen_chrono_parameters)
+
+
+        self.horizontalLayout_5.addLayout(self.verticalLayout_34)
 
         self.verticalLayout_30 = QVBoxLayout()
         self.verticalLayout_30.setObjectName(u"verticalLayout_30")
@@ -785,15 +763,15 @@ class Ui_MainWindow(object):
 
         self.line_chrono_parameter_name = QLineEdit(self.tab_chrono)
         self.line_chrono_parameter_name.setObjectName(u"line_chrono_parameter_name")
-        sizePolicy3.setHeightForWidth(self.line_chrono_parameter_name.sizePolicy().hasHeightForWidth())
-        self.line_chrono_parameter_name.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_chrono_parameter_name.sizePolicy().hasHeightForWidth())
+        self.line_chrono_parameter_name.setSizePolicy(sizePolicy2)
 
         self.verticalLayout_30.addWidget(self.line_chrono_parameter_name)
 
         self.line_chrono_parameter_value = QLineEdit(self.tab_chrono)
         self.line_chrono_parameter_value.setObjectName(u"line_chrono_parameter_value")
-        sizePolicy3.setHeightForWidth(self.line_chrono_parameter_value.sizePolicy().hasHeightForWidth())
-        self.line_chrono_parameter_value.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_chrono_parameter_value.sizePolicy().hasHeightForWidth())
+        self.line_chrono_parameter_value.setSizePolicy(sizePolicy2)
         self.line_chrono_parameter_value.setMinimumSize(QSize(380, 0))
 
         self.verticalLayout_30.addWidget(self.line_chrono_parameter_value)
@@ -869,29 +847,16 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_30.addWidget(self.button_chrono_parameters_add)
 
-        self.horizontalLayout_39 = QHBoxLayout()
-        self.horizontalLayout_39.setObjectName(u"horizontalLayout_39")
-        self.button_del_chosen_chrono_parameters = QPushButton(self.tab_chrono)
-        self.button_del_chosen_chrono_parameters.setObjectName(u"button_del_chosen_chrono_parameters")
 
-        self.horizontalLayout_39.addWidget(self.button_del_chosen_chrono_parameters)
-
-        self.button_reset_chrono_parameters = QPushButton(self.tab_chrono)
-        self.button_reset_chrono_parameters.setObjectName(u"button_reset_chrono_parameters")
-
-        self.horizontalLayout_39.addWidget(self.button_reset_chrono_parameters)
-
-
-        self.verticalLayout_30.addLayout(self.horizontalLayout_39)
-
-
-        self.horizontalLayout_28.addLayout(self.verticalLayout_30)
+        self.horizontalLayout_5.addLayout(self.verticalLayout_30)
 
         self.tabWidget_main.addTab(self.tab_chrono, "")
         self.tab_key_parameters = QWidget()
         self.tab_key_parameters.setObjectName(u"tab_key_parameters")
-        self.horizontalLayout_25 = QHBoxLayout(self.tab_key_parameters)
-        self.horizontalLayout_25.setObjectName(u"horizontalLayout_25")
+        self.horizontalLayout_14 = QHBoxLayout(self.tab_key_parameters)
+        self.horizontalLayout_14.setObjectName(u"horizontalLayout_14")
+        self.verticalLayout_41 = QVBoxLayout()
+        self.verticalLayout_41.setObjectName(u"verticalLayout_41")
         self.verticalLayout_24 = QVBoxLayout()
         self.verticalLayout_24.setObjectName(u"verticalLayout_24")
         self.tab_key_parameters_list = QTabWidget(self.tab_key_parameters)
@@ -939,7 +904,15 @@ class Ui_MainWindow(object):
         self.verticalLayout_24.addLayout(self.horizontalLayout_24)
 
 
-        self.horizontalLayout_25.addLayout(self.verticalLayout_24)
+        self.verticalLayout_41.addLayout(self.verticalLayout_24)
+
+        self.button_del_chosen_key_parameters = QPushButton(self.tab_key_parameters)
+        self.button_del_chosen_key_parameters.setObjectName(u"button_del_chosen_key_parameters")
+
+        self.verticalLayout_41.addWidget(self.button_del_chosen_key_parameters)
+
+
+        self.horizontalLayout_14.addLayout(self.verticalLayout_41)
 
         self.verticalLayout_31 = QVBoxLayout()
         self.verticalLayout_31.setObjectName(u"verticalLayout_31")
@@ -951,8 +924,8 @@ class Ui_MainWindow(object):
 
         self.line_key_parameter_name = QLineEdit(self.tab_key_parameters)
         self.line_key_parameter_name.setObjectName(u"line_key_parameter_name")
-        sizePolicy3.setHeightForWidth(self.line_key_parameter_name.sizePolicy().hasHeightForWidth())
-        self.line_key_parameter_name.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_key_parameter_name.sizePolicy().hasHeightForWidth())
+        self.line_key_parameter_name.setSizePolicy(sizePolicy2)
 
         self.verticalLayout_31.addWidget(self.line_key_parameter_name)
 
@@ -964,15 +937,15 @@ class Ui_MainWindow(object):
 
         self.line_search_parameter_name = QLineEdit(self.tab_key_parameters)
         self.line_search_parameter_name.setObjectName(u"line_search_parameter_name")
-        sizePolicy3.setHeightForWidth(self.line_search_parameter_name.sizePolicy().hasHeightForWidth())
-        self.line_search_parameter_name.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_search_parameter_name.sizePolicy().hasHeightForWidth())
+        self.line_search_parameter_name.setSizePolicy(sizePolicy2)
 
         self.verticalLayout_31.addWidget(self.line_search_parameter_name)
 
         self.line_search_parameter_value = QLineEdit(self.tab_key_parameters)
         self.line_search_parameter_value.setObjectName(u"line_search_parameter_value")
-        sizePolicy3.setHeightForWidth(self.line_search_parameter_value.sizePolicy().hasHeightForWidth())
-        self.line_search_parameter_value.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.line_search_parameter_value.sizePolicy().hasHeightForWidth())
+        self.line_search_parameter_value.setSizePolicy(sizePolicy2)
         self.line_search_parameter_value.setMinimumSize(QSize(380, 0))
 
         self.verticalLayout_31.addWidget(self.line_search_parameter_value)
@@ -1045,25 +1018,82 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_31.addWidget(self.button_key_parameters_add)
 
-        self.horizontalLayout_38 = QHBoxLayout()
-        self.horizontalLayout_38.setObjectName(u"horizontalLayout_38")
-        self.button_del_chosen_key_parameters = QPushButton(self.tab_key_parameters)
-        self.button_del_chosen_key_parameters.setObjectName(u"button_del_chosen_key_parameters")
 
-        self.horizontalLayout_38.addWidget(self.button_del_chosen_key_parameters)
-
-        self.button_reset_key_parameters = QPushButton(self.tab_key_parameters)
-        self.button_reset_key_parameters.setObjectName(u"button_reset_key_parameters")
-
-        self.horizontalLayout_38.addWidget(self.button_reset_key_parameters)
-
-
-        self.verticalLayout_31.addLayout(self.horizontalLayout_38)
-
-
-        self.horizontalLayout_25.addLayout(self.verticalLayout_31)
+        self.horizontalLayout_14.addLayout(self.verticalLayout_31)
 
         self.tabWidget_main.addTab(self.tab_key_parameters, "")
+        self.tab_shapiro_moffette = QWidget()
+        self.tab_shapiro_moffette.setObjectName(u"tab_shapiro_moffette")
+        self.verticalLayout_45 = QVBoxLayout(self.tab_shapiro_moffette)
+        self.verticalLayout_45.setObjectName(u"verticalLayout_45")
+        self.verticalLayout_44 = QVBoxLayout()
+        self.verticalLayout_44.setObjectName(u"verticalLayout_44")
+        self.label_27 = QLabel(self.tab_shapiro_moffette)
+        self.label_27.setObjectName(u"label_27")
+        self.label_27.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_44.addWidget(self.label_27)
+
+        self.horizontalLayout_17 = QHBoxLayout()
+        self.horizontalLayout_17.setObjectName(u"horizontalLayout_17")
+        self.verticalLayout_42 = QVBoxLayout()
+        self.verticalLayout_42.setObjectName(u"verticalLayout_42")
+        self.label_25 = QLabel(self.tab_shapiro_moffette)
+        self.label_25.setObjectName(u"label_25")
+        self.label_25.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_42.addWidget(self.label_25)
+
+        self.plain_text_edit_h2 = QPlainTextEdit(self.tab_shapiro_moffette)
+        self.plain_text_edit_h2.setObjectName(u"plain_text_edit_h2")
+
+        self.verticalLayout_42.addWidget(self.plain_text_edit_h2)
+
+
+        self.horizontalLayout_17.addLayout(self.verticalLayout_42)
+
+        self.frame_3 = QFrame(self.tab_shapiro_moffette)
+        self.frame_3.setObjectName(u"frame_3")
+        self.frame_3.setFrameShape(QFrame.StyledPanel)
+        self.frame_3.setFrameShadow(QFrame.Raised)
+
+        self.horizontalLayout_17.addWidget(self.frame_3)
+
+        self.verticalLayout_43 = QVBoxLayout()
+        self.verticalLayout_43.setObjectName(u"verticalLayout_43")
+        self.label_26 = QLabel(self.tab_shapiro_moffette)
+        self.label_26.setObjectName(u"label_26")
+        self.label_26.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_43.addWidget(self.label_26)
+
+        self.plain_text_edit_h2o = QPlainTextEdit(self.tab_shapiro_moffette)
+        self.plain_text_edit_h2o.setObjectName(u"plain_text_edit_h2o")
+
+        self.verticalLayout_43.addWidget(self.plain_text_edit_h2o)
+
+
+        self.horizontalLayout_17.addLayout(self.verticalLayout_43)
+
+
+        self.verticalLayout_44.addLayout(self.horizontalLayout_17)
+
+
+        self.verticalLayout_45.addLayout(self.verticalLayout_44)
+
+        self.frame_4 = QFrame(self.tab_shapiro_moffette)
+        self.frame_4.setObjectName(u"frame_4")
+        sizePolicy7 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        sizePolicy7.setHorizontalStretch(0)
+        sizePolicy7.setVerticalStretch(0)
+        sizePolicy7.setHeightForWidth(self.frame_4.sizePolicy().hasHeightForWidth())
+        self.frame_4.setSizePolicy(sizePolicy7)
+        self.frame_4.setFrameShape(QFrame.StyledPanel)
+        self.frame_4.setFrameShadow(QFrame.Raised)
+
+        self.verticalLayout_45.addWidget(self.frame_4)
+
+        self.tabWidget_main.addTab(self.tab_shapiro_moffette, "")
         self.tab_save_results = QWidget()
         self.tab_save_results.setObjectName(u"tab_save_results")
         self.verticalLayout_29 = QVBoxLayout(self.tab_save_results)
@@ -1181,9 +1211,6 @@ class Ui_MainWindow(object):
 
         self.frame = QFrame(self.tab_save_results)
         self.frame.setObjectName(u"frame")
-        sizePolicy7 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-        sizePolicy7.setHorizontalStretch(0)
-        sizePolicy7.setVerticalStretch(0)
         sizePolicy7.setHeightForWidth(self.frame.sizePolicy().hasHeightForWidth())
         self.frame.setSizePolicy(sizePolicy7)
         self.frame.setFrameShape(QFrame.StyledPanel)
@@ -1267,6 +1294,7 @@ class Ui_MainWindow(object):
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435", None));
         self.button_up_data.setText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0440\u0445", None))
         self.button_down_data.setText(QCoreApplication.translate("MainWindow", u"\u0412\u043d\u0438\u0437", None))
+        self.button_del_chosen_data.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
         self.label_12.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0440\u0435\u0437\u043a\u0430 \u0441\u043d\u0438\u0437\u0443", None))
         self.line_cut_down_name.setText(QCoreApplication.translate("MainWindow", u"Time", None))
         self.line_cut_down_name.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u0430", None))
@@ -1286,8 +1314,6 @@ class Ui_MainWindow(object):
         self.button_path_to_sackle.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0437\u043e\u0440...", None))
         self.button_add_sackle.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
         self.tabs_add_calculatuons.setTabText(self.tabs_add_calculatuons.indexOf(self.tab_sockle), QCoreApplication.translate("MainWindow", u"*.sockle", None))
-        self.button_del_chosen_data.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
-        self.button_reset_data.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_data), QCoreApplication.translate("MainWindow", u"\u0414\u0430\u043d\u043d\u044b\u0435", None))
         ___qtreewidgetitem1 = self.treeWidget_corrected_parameters.headerItem()
         ___qtreewidgetitem1.setText(2, QCoreApplication.translate("MainWindow", u"\u0412\u044b\u0440\u0430\u0436\u0435\u043d\u0438\u0435", None));
@@ -1295,6 +1321,7 @@ class Ui_MainWindow(object):
         ___qtreewidgetitem1.setText(0, QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u0430", None));
         self.button_up_correcting.setText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0440\u0445", None))
         self.button_down_correcting.setText(QCoreApplication.translate("MainWindow", u"\u0412\u043d\u0438\u0437", None))
+        self.button_corrected_parameters_del.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"\u041a\u043e\u0440\u0440\u0435\u043a\u0442\u0438\u0440\u0443\u0435\u043c\u044b\u0439 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440", None))
         self.line_corrected_parameters_name.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u0430", None))
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0438", None))
@@ -1303,8 +1330,6 @@ class Ui_MainWindow(object):
         self.radioButton_no_extra_operations.setText(QCoreApplication.translate("MainWindow", u"\u0411\u0435\u0437 \u0434\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0445 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0439", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u0412\u044b\u0440\u0430\u0436\u0435\u043d\u0438\u0435", None))
         self.button_corrected_parameters_add.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
-        self.button_corrected_parameters_del.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
-        self.button_corrected_parameters_reset.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c", None))
         self.button_import_cfg.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u043f\u043e\u0440\u0442 \u043d\u0430\u0441\u0442\u0440\u043e\u0435\u043a", None))
         self.button_export_cfg.setText(QCoreApplication.translate("MainWindow", u"\u042d\u043a\u0441\u043f\u043e\u0440\u0442 \u043d\u0430\u0441\u0442\u0440\u043e\u0435\u043a", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_correcting), QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0430", None))
@@ -1346,6 +1371,7 @@ class Ui_MainWindow(object):
         self.tab_graphs_list.setTabText(self.tab_graphs_list.indexOf(self.tab_graphs_multy), QCoreApplication.translate("MainWindow", u"Multy", None))
         self.button_up_graphs.setText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0440\u0445", None))
         self.button_down_graphs.setText(QCoreApplication.translate("MainWindow", u"\u0412\u043d\u0438\u0437", None))
+        self.button_del_chosen_graphs.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u044f \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u043e\u0432", None))
         self.line_graphs_y_names.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u041e\u0441\u044c Y", None))
         self.line_graphs_x_names.setText(QCoreApplication.translate("MainWindow", u"Time", None))
@@ -1372,8 +1398,6 @@ class Ui_MainWindow(object):
         self.line_graphs_x_step.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0428\u0430\u0433 \u0441\u0435\u0442\u043a\u0438 \u043f\u043e X", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435", None))
         self.button_graphs_add.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
-        self.button_del_chosen_graphs.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
-        self.button_reset_graphs.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_graphs), QCoreApplication.translate("MainWindow", u"\u0413\u0440\u0430\u0444\u0438\u043a\u0438", None))
         ___qtreewidgetitem4 = self.treeWidget_chrono_single.headerItem()
         ___qtreewidgetitem4.setText(4, QCoreApplication.translate("MainWindow", u"\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435", None));
@@ -1389,6 +1413,7 @@ class Ui_MainWindow(object):
         ___qtreewidgetitem5.setText(1, QCoreApplication.translate("MainWindow", u"\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435", None));
         ___qtreewidgetitem5.setText(0, QCoreApplication.translate("MainWindow", u"\u041f\u0430\u0440\u0430\u043c\u0435\u0442\u0440 \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", None));
         self.tab_chrono_list.setTabText(self.tab_chrono_list.indexOf(self.tab_7), QCoreApplication.translate("MainWindow", u"Multy", None))
+        self.button_del_chosen_chrono_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
         self.label_24.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0430\u0440\u0430\u043c\u0435\u0442\u0440 \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430 ", None))
         self.line_chrono_parameter_name.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u044f \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u0430 (TRANSDUCER, TRIP, COMMAND)", None))
         self.line_chrono_parameter_value.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435 (\u0447\u0438\u0441\u043b\u043e, min, max, ON_FIRST, ON_LAST, OFF_FIRST, OFF_LAST)", None))
@@ -1404,8 +1429,6 @@ class Ui_MainWindow(object):
         self.line_cut_up_chrono_value.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435 (\u0447\u0438\u0441\u043b\u043e, min, max)", None))
         self.label_29.setText(QCoreApplication.translate("MainWindow", u"\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435", None))
         self.button_chrono_parameters_add.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
-        self.button_del_chosen_chrono_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
-        self.button_reset_chrono_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_chrono), QCoreApplication.translate("MainWindow", u"\u0425\u0440\u043e\u043d\u043e\u043b\u043e\u0433\u0438\u044f", None))
         ___qtreewidgetitem6 = self.treeWidget_key_parameters_single.headerItem()
         ___qtreewidgetitem6.setText(5, QCoreApplication.translate("MainWindow", u"\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435", None));
@@ -1425,6 +1448,7 @@ class Ui_MainWindow(object):
         self.tab_key_parameters_list.setTabText(self.tab_key_parameters_list.indexOf(self.tab_5), QCoreApplication.translate("MainWindow", u"Multy", None))
         self.button_up_key_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0440\u0445", None))
         self.button_down_key_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0412\u043d\u0438\u0437", None))
+        self.button_del_chosen_key_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
         self.label_21.setText(QCoreApplication.translate("MainWindow", u"\u041a\u043b\u044e\u0447\u0435\u0432\u043e\u0439 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440", None))
         self.line_key_parameter_name.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u044f \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u0430 (TRANSDUCER)", None))
         self.label_22.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0430\u0440\u0430\u043c\u0435\u0442\u0440 \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430 ", None))
@@ -1442,9 +1466,13 @@ class Ui_MainWindow(object):
         self.line_cut_up_key_parameters_value.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435 (\u0447\u0438\u0441\u043b\u043e, min, max)", None))
         self.label_28.setText(QCoreApplication.translate("MainWindow", u"\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435", None))
         self.button_key_parameters_add.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
-        self.button_del_chosen_key_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0435", None))
-        self.button_reset_key_parameters.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c", None))
         self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_key_parameters), QCoreApplication.translate("MainWindow", u"\u041a\u043b\u044e\u0447\u0435\u0432\u044b\u0435 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u044b", None))
+        self.label_27.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u0435\u043d\u0430 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u043e\u0432", None))
+        self.label_25.setText(QCoreApplication.translate("MainWindow", u"\u041a\u043e\u043d\u0446\u0435\u043d\u0442\u0440\u0430\u0446\u0438\u044f \u0432\u043e\u0434\u043e\u0440\u043e\u0434\u0430", None))
+        self.plain_text_edit_h2.setPlaceholderText(QCoreApplication.translate("MainWindow", u"ANG01_Fi_H2;ANG02_Fi_H2", None))
+        self.label_26.setText(QCoreApplication.translate("MainWindow", u"\u041a\u043e\u043d\u0446\u0435\u043d\u0442\u0440\u0430\u0446\u0438\u044f \u043f\u0430\u0440\u0430", None))
+        self.plain_text_edit_h2o.setPlaceholderText(QCoreApplication.translate("MainWindow", u"ANG01_Fi_H2O;ANG02_Fi_H2O", None))
+        self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_shapiro_moffette), QCoreApplication.translate("MainWindow", u"\u0428\u0430\u043f\u0438\u0440\u043e-\u041c\u043e\u0444\u0444\u0435\u0442\u0442\u0435", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0444\u0430\u0439\u043b\u0430", None))
         self.line_file_save_name.setText(QCoreApplication.translate("MainWindow", u"Results", None))
         self.line_file_save_name.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435", None))
@@ -1452,7 +1480,7 @@ class Ui_MainWindow(object):
         self.line_graphs_width.setText(QCoreApplication.translate("MainWindow", u"12", None))
         self.line_graphs_width.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435 (\u0441\u043c)", None))
         self.label_16.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0430\u0437\u0434\u0435\u043b\u0438\u0442\u0435\u043b\u044c \u0434\u0440\u043e\u0431\u043d\u043e\u0439 \u0447\u0430\u0441\u0442\u0438", None))
-        self.line_numbers_delim.setText(QCoreApplication.translate("MainWindow", u",", None))
+        self.line_numbers_delim.setText(QCoreApplication.translate("MainWindow", u".", None))
         self.label_15.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u0448\u0440\u0438\u0444\u0442\u0430", None))
         self.comboBox_font_name.setItemText(0, QCoreApplication.translate("MainWindow", u"Times New Roman", None))
         self.comboBox_font_name.setItemText(1, QCoreApplication.translate("MainWindow", u"Arial", None))

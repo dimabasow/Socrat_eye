@@ -7,11 +7,13 @@ import pickle
 import traceback
 import docx
 import json
+import time
+import pandas as pd
 
 from PySide6.QtWidgets import QFileDialog, QDialog
 from PySide6.QtCore import Qt, QThreadPool, QObject, Signal, Slot, QRunnable
 from PySide6.QtWidgets import QApplication, QMainWindow, QTreeWidgetItem, QCompleter, QMessageBox, QMenu
-from PySide6.QtGui import QAction, QTextCursor
+from PySide6.QtGui import QAction, QTextCursor, QDoubleValidator
 
 from ui_main_window import Ui_MainWindow
 from socrat_eye import Socrat_calculation, Trap_calculation, Series_of_calculations
@@ -19,6 +21,10 @@ from graphs_edit_window import Ui_Dialog_graphs_edit
 from chrono_edit_window import Ui_Dialog_chrono_edit
 from key_parameters_edit_window import Ui_Dialog_key_parameters_edit
 from correcting_edit_window import Ui_Dialog_correcting_edit
+from calculation_edit_window import Ui_Dialog_calculation_edit
+
+detonation_limits_csv_name = r"detonation_limits.csv"
+flammability_limits_csv_name = r"flammability_limits.csv"
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -41,6 +47,10 @@ class MainWindow(QMainWindow):
         # Инициализация списка с расчётами
         self.calculations = []
 
+        # Загрузка данных для построения диаграмы Шапиро-Моффетте
+        self.detonation_limits = pd.read_csv(detonation_limits_csv_name, delimiter=";")
+        self.flammability_limits = pd.read_csv(flammability_limits_csv_name, delimiter=";")
+
         # Инициализация буфера расчетов
         self.contextData = []
         # Инициализация буфера с корректируемыми параметрами
@@ -51,6 +61,23 @@ class MainWindow(QMainWindow):
         self.contextChrono = []
         # Инициализация буфера ключевых параметров
         self.contextKeyParameters = []
+
+        # Валидация чисел
+        self.double_validator = QDoubleValidator()
+        self.ui.line_graphs_x_min.setValidator(self.double_validator)
+        self.ui.line_graphs_x_max.setValidator(self.double_validator)
+        self.ui.line_graphs_x_mult.setValidator(self.double_validator)
+        self.ui.line_graphs_x_shift.setValidator(self.double_validator)
+        self.ui.line_graphs_x_step.setValidator(self.double_validator)
+        self.ui.line_graphs_y_min.setValidator(self.double_validator)
+        self.ui.line_graphs_y_max.setValidator(self.double_validator)
+        self.ui.line_graphs_y_mult.setValidator(self.double_validator)
+        self.ui.line_graphs_y_shift.setValidator(self.double_validator)
+        self.ui.line_graphs_y_step.setValidator(self.double_validator)
+        self.ui.line_graphs_width.setValidator(self.double_validator)
+        self.ui.comboBox_font_value.setValidator(self.double_validator)
+
+
 
         # Инициализация completer
         self.completer = Completers()
@@ -110,13 +137,13 @@ class MainWindow(QMainWindow):
         self.ui.line_graphs_y_names.textChanged.connect(
             lambda: self.completer.update_graphs(self.ui.line_graphs_y_names))
 
-
         # Подключение общих кнопок
         # Кнопка для выбора пути сохранения результатов
         self.ui.button_path_save.clicked.connect(
             lambda: self.ui.line_path_to_save.setText(QFileDialog.getExistingDirectory()))
         # Кнопка для предзагрузки
         self.ui.button_pre_run.clicked.connect(self.pre_run)
+        # self.ui.button_execute.clicked.connect(lambda: self.run_function_safely(self.pre_run))
         # Кнопка выполнить
         self.ui.button_execute.clicked.connect(lambda: self.run_function_safely(self.run_programm))
 
@@ -130,8 +157,7 @@ class MainWindow(QMainWindow):
         # подключение кнопок для добавления расчётов
         self.ui.button_add_sackle.clicked.connect(self.add_sockle_file)
         self.ui.button_add_result.clicked.connect(self.add_result_folder)
-        # Подключение кнопок для сброса и удаления расчётов
-        self.ui.button_reset_data.clicked.connect(lambda: self.ui.treeWidget_calculations.clear())
+        # Подключение кнопки для удаления расчётов
         self.ui.button_del_chosen_data.clicked.connect(
             lambda: self.del_selected_elements(self.ui.treeWidget_calculations))
         # Перемещение вверх и вниз
@@ -144,12 +170,13 @@ class MainWindow(QMainWindow):
             lambda position: self.open_context_menu(position,
                                                     self.ui.treeWidget_calculations,
                                                     self.contextData))
+        # Редактирование при двойном клике
+        self.ui.treeWidget_calculations.itemDoubleClicked.connect(self.edit_calculation)
+
         # Вкладка Обработка
         # Подключение кнопок для добавления параметров
         self.ui.button_corrected_parameters_add.clicked.connect(self.add_corected_parameter)
-        # Подключение кнопок для сброса и удаления параметров
-        self.ui.button_corrected_parameters_reset.clicked.connect(
-            lambda: self.ui.treeWidget_corrected_parameters.clear())
+        # Подключение кнопки для удаления параметров
         self.ui.button_corrected_parameters_del.clicked.connect(
             lambda: self.del_selected_elements(self.ui.treeWidget_corrected_parameters))
 
@@ -172,8 +199,7 @@ class MainWindow(QMainWindow):
         # Вкладка Графики
         # Подключение кнопок для добавления графиков
         self.ui.button_graphs_add.clicked.connect(self.add_graph)
-        # Подключение кнопок для сброса и удаления графиков
-        self.ui.button_reset_graphs.clicked.connect(lambda: self.get_tree_graphs().clear())
+        # Подключение кнопки для удаления графиков
         self.ui.button_del_chosen_graphs.clicked.connect(self.del_selected_graphs)
         # Подключение кнопок для перемещения графиков
         self.ui.button_up_graphs.clicked.connect(self.move_up_selected_graphs)
@@ -194,8 +220,7 @@ class MainWindow(QMainWindow):
         # Вкладка Хронология
         # Подключение кнопок для добавления события
         self.ui.button_chrono_parameters_add.clicked.connect(self.add_chrono)
-        # Подключение кнопок для сброса и удаления событий
-        self.ui.button_reset_chrono_parameters.clicked.connect(lambda: self.get_tree_chrono().clear())
+        # Подключение кнопки для удаления событий
         self.ui.button_del_chosen_chrono_parameters.clicked.connect(
             lambda: self.del_selected_elements(self.get_tree_chrono()))
         # Редактирование при двойном клике
@@ -214,8 +239,7 @@ class MainWindow(QMainWindow):
         # Вкладка Ключевые параметры
         # Подключение кнопок для добавления ключевых параметров
         self.ui.button_key_parameters_add.clicked.connect(self.add_key_parameter)
-        # Подключение кнопок для сброса и удаления ключевых параметров
-        self.ui.button_reset_key_parameters.clicked.connect(lambda: self.get_tree_key_parameters().clear())
+        # Подключение кнопок для удаления ключевых параметров
         self.ui.button_del_chosen_key_parameters.clicked.connect(
             lambda: self.del_selected_elements(self.get_tree_key_parameters()))
         # Подключение кнопок для перемещения ключевых параметров
@@ -343,10 +367,6 @@ class MainWindow(QMainWindow):
 
         menu.exec(tree.viewport().mapToGlobal(position))
 
-
-
-
-
     # Вкладка Данные
     # методы для открытия файлов и папок
     def open_sackle_file(self):
@@ -397,6 +417,18 @@ class MainWindow(QMainWindow):
             print("Введено пустое имя")
             self.show_message_window("Введено пустое имя")
 
+    # метод для редактирования данных
+    def edit_calculation (self, item, column):
+        dlg = CalculationEditDlg(item)
+
+        # Обрезка снизу
+        dlg.line_cut_down_calculation_name.setCompleter(self.completer.clusters_completer)
+        dlg.line_cut_down_calculation_value.setCompleter(self.completer.help_clusters_completer)
+        # Обрезка сверху
+        dlg.line_cut_up_calculation_name.setCompleter(self.completer.clusters_completer)
+        dlg.line_cut_up_calculation_value.setCompleter(self.completer.help_clusters_completer)
+
+        dlg.exec()
     # Вкладка Обработка
     # метод для добавления параметров
     def add_corected_parameter(self):
@@ -425,6 +457,12 @@ class MainWindow(QMainWindow):
 
     def save_cfg(self):
         config_dict={}
+        # Вкладка Данные
+        config_dict["Data"] = {}
+        config_dict["Data"]["cut_down_name"] = self.ui.line_cut_down_name.text()
+        config_dict["Data"]["cut_down_value"] = self.ui.line_cut_down_value.text()
+        config_dict["Data"]["cut_up_name"] = self.ui.line_cut_up_name.text()
+        config_dict["Data"]["cut_up_value"] = self.ui.line_cut_up_value.text()
         # Вкладка Обработка
         config_dict["Correcting"]={}
 
@@ -449,6 +487,12 @@ class MainWindow(QMainWindow):
             config_dict["Graphs_multy"].append([])
             for k in range(item.columnCount()):
                 config_dict["Graphs_multy"][-1].append(item.text(k))
+
+        # Вкладка Шапиро-Моффетте
+        config_dict["shapiro_moffette"] = {}
+        config_dict["shapiro_moffette"]["h2_names"] = self.ui.plain_text_edit_h2.toPlainText()
+        config_dict["shapiro_moffette"]["h2o_names"] = self.ui.plain_text_edit_h2o.toPlainText()
+
 
         # Вкладка Хронология
         config_dict["Chrono_single"] = []
@@ -478,6 +522,16 @@ class MainWindow(QMainWindow):
             for k in range(item.columnCount()):
                 config_dict["Key_parameters_multy"][-1].append(item.text(k))
 
+        # Вкладка Сохранение результатов
+        config_dict["save_parameters"] = {}
+        config_dict["save_parameters"]["file_save_name"] = self.ui.line_file_save_name.text()
+        config_dict["save_parameters"]["graphs_width"] = self.ui.line_graphs_width.text()
+        config_dict["save_parameters"]["numbers_delim"] = self.ui.line_numbers_delim.text()
+        config_dict["save_parameters"]["font_name"] = self.ui.comboBox_font_name.currentText()
+        config_dict["save_parameters"]["font_value"] = self.ui.comboBox_font_value.currentText()
+        config_dict["save_parameters"]["round_chrono"] = self.ui.checkBox_round_chrono.isChecked()
+        config_dict["save_parameters"]["round_key_parameters"] = self.ui.checkBox_round_key_parameters.isChecked()
+        config_dict["save_parameters"]["empty_graphs"] = self.ui.checkBox_empty_graphs.isChecked()
 
         file_name = QFileDialog.getSaveFileName(self, "Сохранить файл", "", "Файлы конфигурации (*.json)")[0]
         if len(file_name) > 0:
@@ -490,13 +544,21 @@ class MainWindow(QMainWindow):
             with open(path, encoding="utf8") as json_file:
                 config_dict=json.load(json_file)
 
+            # Данные
+            if "Data" in config_dict:
+                self.ui.line_cut_down_name.setText(config_dict["Data"]["cut_down_name"])
+                self.ui.line_cut_down_value.setText(config_dict["Data"]["cut_down_value"])
+                self.ui.line_cut_up_name.setText(config_dict["Data"]["cut_up_name"])
+                self.ui.line_cut_up_value.setText(config_dict["Data"]["cut_up_value"])
+
             # Корректируемые параметры
             self.ui.treeWidget_corrected_parameters.clear()
             for cfg_columns in config_dict["Correcting"]["Items"]:
                 item = QTreeWidgetItem(cfg_columns)
                 self.ui.treeWidget_corrected_parameters.addTopLevelItem(item)
             # Нужно для completer
-            self.ui.treeWidget_corrected_parameters.setCurrentItem(item)
+            if self.ui.treeWidget_corrected_parameters.topLevelItemCount():
+                self.ui.treeWidget_corrected_parameters.setCurrentItem(item)
 
             # Графики
             self.ui.treeWidget_graphs_single.clear()
@@ -508,6 +570,14 @@ class MainWindow(QMainWindow):
             for cfg_columns in config_dict["Graphs_multy"]:
                 item = QTreeWidgetItem(cfg_columns)
                 self.ui.treeWidget_graphs_multy.addTopLevelItem(item)
+
+            # Шапиро-Моффетте
+            self.ui.plain_text_edit_h2.clear()
+            self.ui.plain_text_edit_h2o.clear()
+
+            if "shapiro_moffette" in config_dict:
+                self.ui.plain_text_edit_h2.setPlainText(config_dict["shapiro_moffette"]["h2_names"])
+                self.ui.plain_text_edit_h2o.setPlainText(config_dict["shapiro_moffette"]["h2o_names"])
 
             # Хронологии
             self.ui.treeWidget_chrono_single.clear()
@@ -530,6 +600,18 @@ class MainWindow(QMainWindow):
             for cfg_columns in config_dict["Key_parameters_multy"]:
                 item = QTreeWidgetItem(cfg_columns)
                 self.ui.treeWidget_key_parameters_multy.addTopLevelItem(item)
+
+            # Вкладка Сохранение результатов
+            if "save_parameters" in config_dict:
+                save_parameters = config_dict["save_parameters"]
+                self.ui.line_file_save_name.setText(save_parameters["file_save_name"])
+                self.ui.line_graphs_width.setText(save_parameters["graphs_width"])
+                self.ui.line_numbers_delim.setText(save_parameters["numbers_delim"])
+                self.ui.comboBox_font_name.setCurrentText(save_parameters["font_name"])
+                self.ui.comboBox_font_value.setCurrentText(save_parameters["font_value"])
+                self.ui.checkBox_round_chrono.setChecked(save_parameters["round_chrono"])
+                self.ui.checkBox_round_key_parameters.setChecked(save_parameters["round_key_parameters"])
+                self.ui.checkBox_empty_graphs.setChecked(save_parameters["empty_graphs"])
 
     # метод для редактирования корректируемого параметра
     def edit_correcting(self, item, column):
@@ -626,6 +708,17 @@ class MainWindow(QMainWindow):
         dlg.line_graphs_y_names.setCompleter(self.completer.graphs_completer)
         dlg.line_graphs_y_names.textChanged.connect(
             lambda: self.completer.update_graphs(dlg.line_graphs_y_names))
+        dlg.line_graphs_x_min.setValidator(self.double_validator)
+        dlg.line_graphs_x_max.setValidator(self.double_validator)
+        dlg.line_graphs_x_mult.setValidator(self.double_validator)
+        dlg.line_graphs_x_shift.setValidator(self.double_validator)
+        dlg.line_graphs_x_step.setValidator(self.double_validator)
+        dlg.line_graphs_y_min.setValidator(self.double_validator)
+        dlg.line_graphs_y_max.setValidator(self.double_validator)
+        dlg.line_graphs_y_mult.setValidator(self.double_validator)
+        dlg.line_graphs_y_shift.setValidator(self.double_validator)
+        dlg.line_graphs_y_step.setValidator(self.double_validator)
+
         dlg.exec()
 
     # Вкладка Хронология
@@ -822,6 +915,7 @@ class MainWindow(QMainWindow):
 
         for item_dict in dict_list:
             if self.stopped:
+                self.calculations = []
                 return
             if not "calc_object" in item_dict:
                 if item_dict["path"].endswith(".sokle"):
@@ -836,12 +930,10 @@ class MainWindow(QMainWindow):
                         calc = Trap_calculation(item_dict["path"])
                     else:
                         print("Проблемы с " + item_dict["path"])
-                        self.show_message_window("Проблемы с " + item_dict["path"])
                         self.calculations = []
                         break
                 else:
                     print("Проблемы с " + item_dict["path"])
-                    self.show_message_window("Проблемы с " + item_dict["path"])
                     self.calculations = []
                     break
 
@@ -849,6 +941,7 @@ class MainWindow(QMainWindow):
                 for table_name in calc.data_dict.keys():
                     if table_name == "report":
                         self.completer.update_report(calc.data_dict[table_name]["Name_report"])
+                        self.completer.update_clusters(calc.data_dict[table_name].columns[:1])
                     else:
                         self.completer.update_clusters(calc.data_dict[table_name].columns)
 
@@ -967,6 +1060,10 @@ class MainWindow(QMainWindow):
                 item_dict[number_name] = str_to_number(item_dict[number_name])
             graphs_multy.append(item_dict)
 
+        # Получене параметров с вкладки Шапиро-Моффетте
+        h2_names = self.ui.plain_text_edit_h2.toPlainText().split(";")
+        h2o_names = self.ui.plain_text_edit_h2o.toPlainText().split(";")
+
         # Получение параметров с вкладки Хронология
         chrono_single = []
         chrono_multy = []
@@ -1055,17 +1152,19 @@ class MainWindow(QMainWindow):
             if self.stopped:
                 return
 
-            calc=calculation["calc_object"]
+            calc=calculation["calc_object"].make_copy()
             if self.stopped:
                 return
+
+            # При необходимости сохранение в бинарном виде
+            if not calculation["path"].endswith(".sokle"):
+                calc.save(name=calculation["name"])
+
             # Обрезка снизу и сверху
             calc.cut_bottom_transform(calculation["cut_down"]["name"], calculation["cut_down"]["value"])
             calc.cut_top_transform(calculation["cut_up"]["name"], calculation["cut_up"]["value"])
             if self.stopped:
                 return
-            # При необходимости сохранение в бинарном виде
-            if not calculation["path"].endswith(".sokle"):
-                calc.save(name=calculation["name"])
 
             # Корректировка
             for corrected_parameter in corrected_parameters:
@@ -1083,7 +1182,7 @@ class MainWindow(QMainWindow):
 
 
             # Построение графиков
-            if len(graphs_single)>0:
+            if graphs_single:
                 # Открытие папки для сохранения в режиме Single
                 if not os.path.exists(calculation["name"]):
                     os.mkdir(calculation["name"])
@@ -1112,6 +1211,15 @@ class MainWindow(QMainWindow):
 
             if self.stopped:
                 return
+
+            # Построение Шапиро-Моффетте
+            if h2_names and h2o_names:
+                if graphs_single:
+                    number = int(graphs_single[-1]["number"]) + 1
+                else:
+                    number = 1
+                calc.graph_shapiro_moffette(str(number), h2_names, h2o_names, self.detonation_limits, self.flammability_limits)
+
             # Построение хронологий и ключевых параметров Single
             calc.make_chrono(chrono_single)
             if self.stopped:
@@ -1170,8 +1278,12 @@ class MainWindow(QMainWindow):
                 index_png = int(os.path.basename(path_to_png).replace(".png",""))-1
                 doc.add_picture(path_to_png, width=docx.shared.Cm(graphs_width))
                 doc.add_paragraph(
-                    "Рисунок {}\n{}".format(str(k + 1), graphs_single[index_png]["description"]))
-
+                    "{}\nРисунок {}".format(graphs_single[index_png]["description"], str(k + 1)))
+            # Сохранение Шапиро-Моффетте
+            if hasattr(calc,"shapiro_moffette_dict") and calc.shapiro_moffette_dict:
+                doc.add_picture(calc.shapiro_moffette_dict["png"], width=docx.shared.Cm(graphs_width))
+                doc.add_paragraph(
+                    "{}\nРисунок {}".format("Диаграмма Шапиро-Моффетте", str(len(calc.graph_list) + 1)))
             # Запись Word Single
             if len(calc.graph_list)>0 or len(calc.key_parameters_table) or len(calc.chrono_table) >0:
                 doc_saved=False
@@ -1182,7 +1294,7 @@ class MainWindow(QMainWindow):
                         doc_saved=True
                     except:
                         print("Файл {} в данный момент открыт".format(doc_name))
-                        self.show_message_window("Файл {} в данный момент открыт".format(doc_name))
+                        time.sleep(1)
 
             # Сброс графиков, хронологий и ключевых параметров
             calc.reset_data()
@@ -1296,7 +1408,7 @@ class MainWindow(QMainWindow):
                     doc_saved = True
                 except:
                     print("Файл {} в данный момент открыт".format(doc_name))
-                    self.show_message_window("Файл {} в данный момент открыт".format(doc_name))
+                    time.sleep(1)
         os.startfile(path_save)
     # метод для запуска выполнения на отдельном потоке выполнения программы
     def run_function_safely(self, fn):
@@ -1354,7 +1466,27 @@ class OutputWrapper(QObject):
         except AttributeError:
             pass
 
+class CalculationEditDlg(Ui_Dialog_calculation_edit, QDialog):
+    def __init__(self, item, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+        self.item=item
 
+
+        self.line_calculation_name.setText(item.text(0))
+        self.line_cut_down_calculation_name.setText(item.text(1).split(";")[0])
+        self.line_cut_down_calculation_value.setText(item.text(1).split(";")[1])
+        self.line_cut_up_calculation_name.setText(item.text(2).split(";")[0])
+        self.line_cut_up_calculation_value.setText(item.text(2).split(";")[1])
+        self.line_calculation_path.setText(item.text(3))
+
+        self.buttonBox.accepted.connect(self.save_changes)
+
+    def save_changes(self):
+        self.item.setText(0, self.line_calculation_name.text())
+        self.item.setText(1, ";".join([self.line_cut_down_calculation_name.text(),self.line_cut_down_calculation_value.text()]))
+        self.item.setText(2, ";".join([self.line_cut_up_calculation_name.text(), self.line_cut_up_calculation_value.text()]))
+        self.item.setText(3, self.line_calculation_path.text())
 class GraphEditDlg(Ui_Dialog_graphs_edit, QDialog):
     def __init__(self, item, parent=None):
         super().__init__(parent)
@@ -1375,6 +1507,8 @@ class GraphEditDlg(Ui_Dialog_graphs_edit, QDialog):
         self.line_graphs_y_step.setText(item.text(13))
         self.line_graphs_x_step.setText(item.text(14))
         self.text_edit_graphs_description.setText(item.text(15))
+
+
 
         self.buttonBox.accepted.connect(self.save_changes)
 

@@ -1,24 +1,46 @@
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import pylab
+import ternary
 import pandas as pd
 import numpy as np
 import os
 import copy
 import pickle
 from struct import unpack
+# import seaborn as sns
 
 
 
-def graph (GrName, get_x, get_y, lablex="t, s", labley="", x1=None, y1=None, x2=None, y2=None, mult_x=None, mult_y=None, shift_x=None, shift_y=None, stpx=None, stpy=None):
-    if isinstance(get_y[0],(np.ndarray,pd.Series,list,tuple)):
-        y=[pd.Series(i) for i in get_y]
+def graph (GrName, get_named_data = None, get_unamed_data = None, lablex="t, s", labley="", x1=None, y1=None, x2=None, y2=None, mult_x=None, mult_y=None, shift_x=None, shift_y=None, stpx=None, stpy=None):
+    
+    if get_named_data is not None:
+        get_named_x, get_named_y = get_named_data
+        if isinstance(get_named_y[0],(np.ndarray,pd.Series,list,tuple)):
+            named_y = [pd.Series(i) for i in get_named_y]
+        else:
+            named_y=[pd.Series(get_named_y)]
+        
+        if isinstance(get_named_x[0],(np.ndarray,pd.Series,list,tuple)):
+            named_x = [pd.Series(i) for i in get_named_x]
+        else:
+            named_x=[pd.Series(get_named_x)]
     else:
-        y=[pd.Series(get_y)]
-    if isinstance(get_x[0],(np.ndarray,pd.Series,list,tuple)):
-        x=[pd.Series(i) for i in get_x]
+        named_x, named_y = None, None
+    
+    if get_unamed_data is not None:
+        get_unamed_x, get_unamed_y = get_unamed_data
+        if isinstance(get_unamed_y[0],(np.ndarray,pd.Series,list,tuple)):
+            unamed_y = [pd.Series(i) for i in get_unamed_y]
+        else:
+            unamed_y=[pd.Series(get_unamed_y)]
+        
+        if isinstance(get_unamed_x[0],(np.ndarray,pd.Series,list,tuple)):
+            unamed_x = [pd.Series(i) for i in get_unamed_x]
+        else:
+            unamed_x=[pd.Series(get_unamed_x)]
     else:
-        x=[pd.Series(get_x) for i in range(len(y))]
+        unamed_x, unamed_y = None, None
     
     colors = ('#000000', '#FF0000', '#0000FF', '#008000', '#FF00FF', '#8B4513',
          '#808080', '#C0C0C0', '#800080', '#800000', '#FFFF00', '#00FF00',
@@ -40,49 +62,137 @@ def graph (GrName, get_x, get_y, lablex="t, s", labley="", x1=None, y1=None, x2=
     path_dict={}
     
     if mult_x is not None:
-        x=[i*mult_x for i in x]
+        if named_x is not None:
+            named_x=[i*mult_x for i in named_x]
+        if unamed_x is not None:
+            unamed_x=[i*mult_x for i in unamed_x]
     if mult_y is not None:
-        y=[i*mult_y for i in y]
+        if named_y is not None:
+            named_y=[i*mult_y for i in named_y]
+        if unamed_y is not None:
+            unamed_y=[i*mult_y for i in unamed_y]
     if shift_x is not None:
-        x=[i+shift_x for i in x]
+        if named_x is not None:
+            named_x=[i+shift_x for i in named_x]
+        if unamed_x is not None:
+            unamed_x=[i+shift_x for i in unamed_x]
     if shift_y is not None:
-        y=[i+shift_y for i in y]
+        if named_y is not None:
+            named_y=[i+shift_y for i in named_y]
+        if unamed_y is not None:
+            unamed_y=[i+shift_y for i in unamed_y]
+
+    if x1:
+        if named_x:
+            for i in range(len(named_x)):
+                if x1>named_x[i].min():
+                    N_min=named_x[i][named_x[i]>x1].index[0]
+                    named_x[i]=named_x[i][N_min:]
+                    named_y[i]=named_y[i][N_min:]
+        if unamed_x:
+            for i in range(len(unamed_x)):
+                if x1>unamed_x[i].min():
+                    N_min=unamed_x[i][unamed_x[i]>x1].index[0]
+                    unamed_x[i]=unamed_x[i][N_min:]
+                    unamed_y[i]=unamed_y[i][N_min:]
+
+    if x2:
+        if named_x:
+            for i in range(len(named_x)):
+                if x2<named_x[i].max():
+                    N_max=named_x[i][named_x[i]>x2].index[0]
+                    named_x[i]=named_x[i][:N_max]
+                    named_y[i]=named_y[i][:N_max]
+        if unamed_x:
+            for i in range(len(unamed_x)):
+                if x2<unamed_x[i].max():
+                    N_max=unamed_x[i][unamed_x[i]>x2].index[0]
+                    unamed_x[i]=unamed_x[i][:N_max]
+                    unamed_y[i]=unamed_y[i][:N_max]
+
+    if y1:
+        if named_y:
+            for i in range(len(named_y)):
+                named_x[i] = named_x[i][y1 <= named_y[i]]
+                named_y[i] = named_y[i][y1 <= named_y[i]]
+        if unamed_y:
+            for i in range(len(unamed_y)):
+                unamed_x[i] = unamed_x[i][y1 <= unamed_y[i]]
+                unamed_y[i] = unamed_y[i][y1 <= unamed_y[i]]
+
+    if y2:
+        if named_y:
+            for i in range(len(named_y)):
+                named_x[i] = named_x[i][y2 >= named_y[i]]
+                named_y[i] = named_y[i][y2 >= named_y[i]]
+        if unamed_y:
+            for i in range(len(unamed_y)):
+                unamed_x[i] = unamed_x[i][y2 >= unamed_y[i]]
+                unamed_y[i] = unamed_y[i][y2 >= unamed_y[i]]
+
+    if y1 is None:
+        y1_list = []
+        if named_y:
+            y1_named = min(min(i) for i in named_y)
+            y1_list.append(y1_named)
+        if unamed_y:
+            y1_unamed = min(min(i) for i in unamed_y)
+            y1_list.append(y1_unamed)
+        if y1_list:
+            y1 = min(y1_list)
+            
+    if y2 is None:
+        y2_list = []
+        if named_y:
+            y2_named = max(max(i) for i in named_y)
+            y2_list.append(y2_named)
+        if unamed_y:
+            y2_unamed = max(max(i) for i in unamed_y)
+            y2_list.append(y2_unamed)
+        if y2_list:
+            y2 = max(y2_list)
+            y2 = y2 + 0.05*(y2-y1)
     
     if x1 is None:
-        x1=min(min(i) for i in x)
-    else:
-        for i in range(len(x)):
-            if x1>x[i][0]:
-                N_min=x[i][x[i]>x1].index[0]
-                x[i]=x[i][N_min:]
-                y[i]=y[i][N_min:]
+        x1_list = []
+        if named_x:
+            x1_named = min(min(i) for i in named_x)
+            x1_list.append(x1_named)
+        if unamed_x:
+            x1_unamed = min(min(i) for i in unamed_x)
+            x1_list.append(x1_unamed)
+        if x1_list:
+            x1 = min(x1_list)
+
     if x2 is None:
-        x2=max(max(i) for i in x)
-    else:
-        for i in range(len(x)):
-            if x2<x[i][len(x[i])-1]:
-                N_max=x[i][x[i]>x2].index[0]
-                x[i]=x[i][:N_max]
-                y[i]=y[i][:N_max]
-    
-    if y1 is None:
-        y1=min(min(i) for i in y)
-    if y2 is None:
-        y2=0.1*(max(max(i) for i in y)-y1)+max(max(i) for i in y)
+        x2_list = []
+        if named_x:
+            x2_named = max(max(i) for i in named_x)
+            x2_list.append(x2_named)
+        if unamed_x:
+            x2_unamed = max(max(i) for i in unamed_x)
+            x2_list.append(x2_unamed)
+        if x2_list:
+            x2 = max(x2_list)
         
     path_dict["x_min"]=str(int(x1))
     path_dict["x_max"]=str(int(x2))
     path_dict["y_min"]=str(int(y1))
     path_dict["y_max"]=str(int(y2))
 
-    N_points_aray=[]
-    for i in range(len(x)):
-        N_points = len(x[i])//50
+    N_points_named_list=[]
+    for i in range(len(named_x)):
+        N_points = len(named_x[i]) // 50
         if N_points==0:
             N_points=1
-        N_points_aray.append(N_points)
-    for i in range(len(y)):
-        ax.plot(x[i], y[i], colors[i-len(colors)*(i//len(colors))], linewidth = 2, label = str(i+1), marker = markers[i-len(markers)*(i//len(markers))], markevery = N_points_aray[i])
+        N_points_named_list.append(N_points)
+    
+    if named_y:
+        for i in range(len(named_y)):
+            ax.plot(named_x[i], named_y[i], colors[i-len(colors)*(i//len(colors))], linewidth = 4, label = str(i+1), marker = markers[i-len(markers)*(i//len(markers))], markevery = N_points_named_list[i])
+    if unamed_y:
+        for i in range(len(unamed_y)):
+            ax.plot(unamed_x[i], unamed_y[i], colors[i-len(colors)*(i//len(colors))], linewidth = 0.3)
 
     pylab.xlim (xmin = x1, xmax=x2)
     pylab.ylim (ymin = y1, ymax=y2)
@@ -108,7 +218,7 @@ def graph (GrName, get_x, get_y, lablex="t, s", labley="", x1=None, y1=None, x2=
     ax.set_ylabel(labley, fontsize = 24)
     ax.set_xlabel(lablex, fontsize = 24)
     
-    if len(get_y)>1:
+    if named_y and len(named_y)>1:
         pylab.legend(loc='best', numpoints=1, fontsize=20).get_frame().set_edgecolor('w')
     
     fig.set_figwidth(12)
@@ -122,6 +232,45 @@ def graph (GrName, get_x, get_y, lablex="t, s", labley="", x1=None, y1=None, x2=
     
     return path_dict
 
+def graph_shapiro_moffette(GrName, points_list, detonation_limits, flammability_limits):
+    path_dict = {}
+    scale = 100
+    fontsize = 12
+    fmt = "png"
+    order = ["Steam","Air","Hydrogen"]
+
+    figure, tax = ternary.figure(scale=scale)
+
+    # Draw Boundary and Gridlines
+    tax.boundary(linewidth=2.0)
+    tax.gridlines(color="black", multiple=5)
+
+    # Set Axis labels
+    tax.right_corner_label(r"$\varphi_{H_{2}O}$, %", fontsize=fontsize, offset=0.1)
+    tax.top_corner_label(r"$\varphi_{Air}$, %", fontsize=fontsize, offset=0.2)
+    tax.left_corner_label(r"$\varphi_{H_{2}}$, %", fontsize=fontsize, offset=0.15)
+
+    tax.left_axis_label("Hydrogen", fontsize=fontsize, offset=0.15)
+    tax.right_axis_label("Air", fontsize=fontsize, offset=0.15)
+    tax.bottom_axis_label("Steam", fontsize=fontsize, offset=0.1)
+
+    # Drawing
+    tax.plot(flammability_limits[order].to_numpy() * scale, color="orange", label="Flammability", linewidth=2)
+    tax.plot(detonation_limits[order].to_numpy() * scale, color="red", label="Detonation", linewidth=2)
+    tax.plot(points_list[0][order].to_numpy() * scale, color="green", label="Calculation", linewidth=2)
+    for points_frame in points_list[1:]:
+        tax.plot(points_frame[order].to_numpy() * scale, color="green", linestyle=":", linewidth=2)
+
+    tax.ticks(axis='lbr', multiple=5, linewidth=1, offset=0.025)
+    tax.get_axes().axis('off')
+    tax.clear_matplotlib_ticks()
+    tax.legend(loc="upper right")
+
+    # Сохранение .png
+    path_dict[fmt] = os.path.abspath(os.curdir) + "\\" + GrName + "." + fmt
+    tax.savefig('{}.{}'.format(GrName, fmt), format=fmt, bbox_inches='tight')
+
+    return path_dict
 
 class Calculation:
 
@@ -144,18 +293,19 @@ class Calculation:
         keys_to_remote = []
         if time_row is not None:
             lower_time = time_row[0]
-            for table_name in self.data_dict:
-                table = self.data_dict[table_name]
-                time_table = table.iloc[0, 0]
-                if time_table < lower_time:
-                    if len(table[table.columns[0]][table[table.columns[0]] > lower_time]) > 0:
-                        lower_index = table[table.columns[0]][table[table.columns[0]] > lower_time].index[0]
-                    else:
-                        lower_index = len(table)
-                    self.data_dict[table_name] = self.data_dict[table_name][lower_index:]
-                    self.data_dict[table_name].reset_index(drop=True, inplace=True)
-                    if len(self.data_dict[table_name]) == 0:
-                        keys_to_remote.append(table_name)
+            if isinstance(lower_time, (float, int)):
+                for table_name in self.data_dict:
+                    table = self.data_dict[table_name]
+                    time_table = table.iloc[0, 0]
+                    if isinstance(time_table, (float, int)) and time_table < lower_time:
+                        if len(table[table.columns[0]][table[table.columns[0]] > lower_time]) > 0:
+                            lower_index = table[table.columns[0]][table[table.columns[0]] > lower_time].index[0]
+                        else:
+                            lower_index = len(table)
+                        self.data_dict[table_name] = self.data_dict[table_name][lower_index:]
+                        self.data_dict[table_name].reset_index(drop=True, inplace=True)
+                        if len(self.data_dict[table_name]) == 0:
+                            keys_to_remote.append(table_name)
         for key in keys_to_remote:
             self.data_dict.pop(key)
 
@@ -165,18 +315,19 @@ class Calculation:
         keys_to_remote = []
         if time_row is not None:
             upper_time = time_row[0]
-            for table_name in self.data_dict:
-                table = self.data_dict[table_name]
-                time_table = table.iloc[-1, 0]
-                if time_table > upper_time:
-                    if len(table[table.columns[0]][table[table.columns[0]] < upper_time]) > 0:
-                        upper_index = table[table.columns[0]][table[table.columns[0]] > upper_time].index[0]
-                    else:
-                        upper_index = 0
-                    self.data_dict[table_name] = self.data_dict[table_name][:upper_index]
-                    self.data_dict[table_name].reset_index(drop=True, inplace=True)
-                    if len(self.data_dict[table_name]) == 0:
-                        keys_to_remote.append(table_name)
+            if isinstance(upper_time, (float, int)):
+                for table_name in self.data_dict:
+                    table = self.data_dict[table_name]
+                    time_table = table.iloc[-1, 0]
+                    if isinstance(time_table, (float, int)) and time_table > upper_time:
+                        if len(table[table.columns[0]][table[table.columns[0]] < upper_time]) > 0:
+                            upper_index = table[table.columns[0]][table[table.columns[0]] > upper_time].index[0]
+                        else:
+                            upper_index = 0
+                        self.data_dict[table_name] = self.data_dict[table_name][:upper_index]
+                        self.data_dict[table_name].reset_index(drop=True, inplace=True)
+                        if len(self.data_dict[table_name]) == 0:
+                            keys_to_remote.append(table_name)
 
         for key in keys_to_remote:
             self.data_dict.pop(key)
@@ -207,7 +358,7 @@ class Calculation:
                 parameter_value = parameter_min
             elif parameter_value == "max":
                 parameter_value = parameter_max
-        if table is not None and isinstance(parameter_value, float):
+        if table is not None and isinstance(parameter_value, (float, int)):
             if parameter_min <= parameter_value <= parameter_max:
                 table_equal = table[parameter_name][table[parameter_name] == parameter_value]
                 indexes = []
@@ -332,12 +483,33 @@ class Calculation:
                 print("График {} пустой".format(GrName))
 
         if draw_graph:
-            path_dict = graph(GrName, get_x, get_y, lablex=lablex, labley=labley, x1=x1, y1=y1, x2=x2, y2=y2, mult_x=mult_x,
+            path_dict = graph(GrName, get_named_data = (get_x, get_y), lablex=lablex, labley=labley, x1=x1, y1=y1, x2=x2, y2=y2, mult_x=mult_x,
                               mult_y=mult_y, shift_x=shift_x, shift_y=shift_y, stpx=stpx, stpy=stpy)
 
             path_dict["x"] = "_".join(x_names)
             path_dict["y"] = "_".join(y_names)
             self.graph_list.append(path_dict)
+
+    # метод для отрисовки диаграммы Шапиро-Моффетте
+    def graph_shapiro_moffette(self, GrName, h2_names, h2o_names, detonation_limits, flammability_limits):
+        if h2_names and h2o_names and "dia" in self.data_dict:
+            points_list = []
+            dia_frame = self.data_dict["dia"]
+
+            if len(h2_names) == len(h2o_names):
+                if set(h2_names + h2o_names) <= set(self.data_dict["dia"].columns):
+                    for h2_name, h2o_name in zip(h2_names, h2o_names):
+                        points_frame = pd.DataFrame(
+                            [1 - dia_frame[h2_name] - dia_frame[h2o_name], dia_frame[h2_name], dia_frame[h2o_name]],
+                            index=["Air", "Hydrogen", "Steam"])
+                        points_list.append(points_frame.T)
+                    path_dict = graph_shapiro_moffette(GrName, points_list, detonation_limits, flammability_limits)
+                    self.shapiro_moffette_dict = path_dict
+                else:
+                    print("Указанные кластеры с концентрациями водорода и пара не найдены")
+            else:
+                print("Количество кластеров с концентрациями водорода и пара не совпадает")
+
 
     # метод для создания хронологии
     def make_chrono(self, time_list):
@@ -363,10 +535,12 @@ class Calculation:
             if key_value is not None:
                 key_parameters_list.append(
                     pd.DataFrame([[key_point["description"], key_value]], columns=["Description", "Value"]))
+                print(key_point["description"])
         self.key_parameters_table = pd.concat(key_parameters_list).drop_duplicates().reset_index(drop=True)
 
     # метод для сброса ключевых параметров, хронологий и графиков
     def reset_data(self):
+        self.shapiro_moffette_dict = None
         self.graph_list = []
         self.chrono_table = pd.DataFrame(columns=["Time", "Description"])
         self.key_parameters_table = pd.DataFrame(columns=["Description", "Value"])
@@ -382,19 +556,18 @@ class Calculation:
     # метод для получения получения пользовательских значений
     def get_user_values(self, expression):
         init_expression = expression
-
         list_to_replace = []
         expression_left_lst = expression.split("{")
         for sub_string in expression_left_lst[1:]:
             sub_list = sub_string.split("}")
             list_to_replace.append(sub_list[0])
         list_to_replace = list(set(list_to_replace))
-
+        
         for parameter in list_to_replace:
             expression = expression.replace("{" + parameter + "}", "self.get_values('{}')".format(parameter))
 
         try:
-            value = eval(expression)
+            value = eval(expression, {"pd": pd, "np": np, "self": self, "calc": self})
         except:
             print("Ошибка при выполнении " + init_expression)
             value = None
@@ -403,22 +576,28 @@ class Calculation:
     # метод для корректировки параметров
     def correcting_parameters(self, name, expression, integral=False, derivative=False):
         value=self.get_user_values(expression)
-        if isinstance(value, pd.Series):
+        if isinstance(value, pd.Series) and None not in value.values and not np.isnan(value.values).any() and not np.isinf(value.values).any():
             names_frame=list(self.data_dict.keys())
-            if "report" in names_frame:
+            if name!="Time_report" and "report" in names_frame:
                 names_frame.remove("report")
-            for name_frame in names_frame:
-                if len(self.data_dict[name_frame])==len(value):
-                    table=self.data_dict[name_frame]
-                    
-                    if isinstance(integral,bool) and isinstance(derivative,bool) and integral!=derivative:
-                        x=table.iloc[:,0]
-                        if integral:
-                            value=np.array([np.trapz(value[:i+1],x[:i+1]) for i in range(len(value))])
-                        if derivative:
-                            value=np.gradient(value,x)
-                    table[name]=value
-
+            correcting_frames_names = [name_frame for name_frame in names_frame if len(self.data_dict[name_frame])==len(value)]
+            for name_frame in correcting_frames_names:
+                table=self.data_dict[name_frame]
+                if isinstance(integral,bool) and isinstance(derivative,bool) and integral!=derivative:
+                    x=table.iloc[:,0]
+                    if integral:
+                        value=np.array([np.trapz(value[:i+1],x[:i+1]) for i in range(len(value))])
+                    if derivative:
+                        value=np.gradient(value,x)
+                table[name]=value
+            if not correcting_frames_names:
+                table_name = "new_table_0"
+                i = 0
+                while table_name in self.data_dict:
+                    i+=1
+                    table_name = "new_table_" + str(i)
+                self.data_dict[table_name] = pd.DataFrame()
+                self.data_dict[table_name][name] = value
 
 class Socrat_calculation(Calculation):
     
@@ -549,9 +728,26 @@ class Socrat_calculation(Calculation):
             if folder_hef.endswith("#hefest"):
                 os.chdir(folder_hef)
                 if "p1runout" in os.listdir():
-                    self.data_dict["p1runout"]=pd.read_table("p1runout", delim_whitespace=True)
+                    try:
+                        table = pd.read_table("p1runout", delim_whitespace=True)
+                        if len(table)>0 and not table.isna().sum().sum():
+                            self.data_dict["p1runout"] = table
+                    except:
+                        print("Ошибка при чтении p1runout")
                 if "p1spn" in os.listdir():
-                    self.data_dict["p1spn"]=pd.read_table("p1spn", delim_whitespace=True)
+                    try:
+                        table = pd.read_table("p1spn", delim_whitespace=True)
+                        if len(table)>0 and not table.isna().sum().sum():
+                            self.data_dict["p1spn"] = table
+                    except:
+                        print("Ошибка при чтении p1spn")
+        keys_to_remote=[]
+        for table_name in self.data_dict:
+            if len(self.data_dict[table_name]) == 0:
+                keys_to_remote.append(table_name)
+        for key in keys_to_remote:
+            self.data_dict.pop(key)
+            
         
         os.chdir(initial_dir)
 
@@ -607,8 +803,19 @@ class Trap_calculation(Calculation):
                     row = file_b[(i) * 4 * (N_parameters + 2):(i + 1) * 4 * (N_parameters + 2)]
                     row = [unpack("f", row[k * 4:(k + 1) * 4])[0] for k in range(N_parameters + 2)]
                     data.append(row[2:])
-
-            return pd.DataFrame(data, columns=names)
+                names_non_unique = set([name for name in names if names.count(name) > 1])
+                names_unique = set(names) - names_non_unique
+                names_non_unique_counter = {}
+                for name in names_non_unique:
+                    names_non_unique_counter[name] = 0
+                names_corrected = []
+                for name in names:
+                    if name in names_unique:
+                        names_corrected.append(name)
+                    else:
+                        names_non_unique_counter[name] += 1
+                        names_corrected.append(name + " " + str(names_non_unique_counter[name]))
+            return pd.DataFrame(data, columns=names_corrected)
 
         initial_dir = os.getcwd()
         os.chdir(path_to_folder)
@@ -627,6 +834,7 @@ class Series_of_calculations:
         self.graph_list=[]
         self.chrono_table=pd.DataFrame(columns=["Description"])
         self.key_parameters_table=pd.DataFrame(columns=["Description"])
+        
         if not isinstance(calculations,list):
             calculations=[calculations]
         for i in range(len(calculations)):
@@ -637,7 +845,6 @@ class Series_of_calculations:
             calc_key_parameters=calculations[i].key_parameters_table.copy()
             calc_key_parameters.columns=["Description", "Values_"+str(i+1)]
             self.key_parameters_table=self.key_parameters_table.merge(calc_key_parameters,how="outer",on = "Description").fillna("–")
-
     
     def graph (self, GrName, x_names, y_names, lablex="t, s", labley="", x1=None, y1=None, x2=None, y2=None, mult_x=None, mult_y=None, shift_x=None, shift_y=None, stpx=None, stpy=None, empty_graphs=True):
         if isinstance(y_names, str):
@@ -670,9 +877,375 @@ class Series_of_calculations:
                 print("График {} пустой".format(GrName))
 
         if draw_graph:
-            path_dict=graph(GrName, get_x, get_y, lablex=lablex, labley=labley, x1=x1, y1=y1, x2=x2, y2=y2, mult_x=mult_x, mult_y=mult_y, shift_x=shift_x, shift_y=shift_y, stpx=stpx, stpy=stpy)
+            path_dict=graph(GrName, get_named_data = (get_x, get_y), lablex=lablex, labley=labley, x1=x1, y1=y1, x2=x2, y2=y2, mult_x=mult_x, mult_y=mult_y, shift_x=shift_x, shift_y=shift_y, stpx=stpx, stpy=stpy)
 
             path_dict["x"]="_".join(x_names)
             path_dict["y"]="_".join(y_names)
             self.graph_list.append(path_dict)
-
+        
+class SU_Series:
+    def __init__(self, path_to_values):
+        self.vars_frame = pd.read_csv(path_to_values, delim_whitespace=True, index_col="number")
+        self.calculations_list = []
+        self.key_parameters = []
+        self.dynamic_parameters = {}
+        self.calculations_without_deviations = []
+        self.graph_list = []
+        
+        rel_path_to_result = None
+        path_to_first_calc = os.path.join(os.path.dirname(path_to_values), str(self.vars_frame.index[0]))
+        
+        for rootdir, dirs, files in os.walk(path_to_first_calc):
+            dia_contains = [file.endswith(".dia") for file in files]
+            if True in dia_contains:
+                rel_path_to_result = os.path.relpath(rootdir, path_to_first_calc)
+                break
+        
+        for number in self.vars_frame.index:
+            print(number)
+            calc = Socrat_calculation("{}\\{}\\{}".format(os.path.dirname(path_to_values), str(number), rel_path_to_result))
+            calc.frame_line = self.vars_frame.loc[number]
+            self.calculations_list.append(calc)
+        
+        self.corrected_calculations_list = self.calculations_list
+        self.corrected_frame = self.vars_frame
+    
+    def append_calculation_without_deviation(self, calc):
+        if isinstance(calc, str):
+            if calc.endswith(".sokle"):
+                with open(calc, "rb") as f:
+                    self.calculations_without_deviations.append(pickle.load(f))
+            elif os.path.isdir(calc):
+                dir_files = os.listdir(calc)
+                dia_names_bool = [name.endswith(".dia") for name in dir_files]
+                if True in dia_names_bool:
+                    self.calculations_without_deviations.append(Socrat_calculation(calc))
+        elif isinstance(calc, Socrat_calculation):
+            self.calculations_without_deviations.append(calc)
+    
+    def cut_bottom_transform(self, parameter_name, parameter_value):
+        for calc in self.calculations_list:
+            calc.cut_bottom_transform(parameter_name, parameter_value)
+        for calc in self.calculations_without_deviations:
+            calc.cut_bottom_transform(parameter_name, parameter_value)
+    
+    def cut_top_transform(self, parameter_name, parameter_value):
+        for calc in self.calculations_list:
+            calc.cut_top_transform(parameter_name, parameter_value)
+        for calc in self.calculations_without_deviations:
+            calc.cut_top_transform(parameter_name, parameter_value)
+    
+    def make_corrected_data(self, key_parameters, check_function = lambda calc: True):
+        self.corrected_calculations_list = []
+        self.key_parameters = key_parameters
+        
+        i = 1
+        for parameter in self.key_parameters:
+            if "cut_down" not in parameter:
+                parameter["cut_down"] = None
+            if "cut_up" not in parameter:
+                parameter["cut_up"] = None
+            if "bins" not in parameter:
+                parameter["bins"] = 7
+            parameter["symbol"] = "KEY" + str(i)
+            i+=1
+                
+        for calc in self.calculations_list:
+            for parameter in self.key_parameters:
+                key_value = calc.get_key_parameter(parameter["key_parameter_name"], parameter["search_name"], parameter["search_value"], parameter["cut_down"], parameter["cut_up"])
+                if key_value is not None and "mult" in parameter:
+                    key_value = key_value * parameter["mult"]
+                if key_value is not None and "shift" in parameter:
+                    key_value = key_value + parameter["shift"]
+                calc.frame_line[parameter["symbol"]] = key_value
+            if not calc.frame_line.isna().sum() and check_function(calc):
+                self.corrected_calculations_list.append(calc)
+        self.corrected_frame = pd.DataFrame([calc.frame_line for calc in self.corrected_calculations_list])
+        self.make_convergence_frames()
+        
+    def make_convergence_frames(self):
+        for parameter in self.key_parameters:
+            mean_list = []
+            std_list = []
+            values_series = self.corrected_frame[parameter["symbol"]]
+            for i in range(len(values_series)):
+                slice_series = values_series.iloc[:i+1]
+                mean_list.append(slice_series.mean())
+                std_list.append(slice_series.std())
+            mean_series = pd.Series(mean_list, name = "mean")
+            std_series = pd.Series(std_list, name = "std")
+            rel_std_series = pd.Series(std_series/mean_series, name = "rel_std")
+            N_series = pd.Series(np.arange(1,len(values_series)+1),name = "N")
+            convergence_frame = pd.DataFrame([N_series, mean_series, std_series, rel_std_series]).T
+            convergence_frame = convergence_frame.fillna(0)
+            parameter["convergence"] = convergence_frame
+    
+    def make_dynamic_data(self, dynamic_parameters):
+        self.dynamic_parameters = dynamic_parameters
+        dynamic_parameters_dict = {}
+        names = []
+        for parameter in self.dynamic_parameters:
+            if isinstance(parameter["name"], str):
+                names.append(parameter["name"])
+            else:
+                names.extend(list(parameter["name"]))
+        names = set(names)
+        
+        
+        cluster_dict_calcs = {}
+        for calc in self.corrected_calculations_list:
+            for cluster_name in calc.data_dict:
+                if cluster_name in cluster_dict_calcs:
+                    cluster_dict_calcs[cluster_name] = cluster_dict_calcs[cluster_name] | set(calc.data_dict[cluster_name].columns)
+                else:
+                    cluster_dict_calcs[cluster_name] = set(calc.data_dict[cluster_name].columns)
+        
+        cluster_dict_names = {}
+        for cluster_name in cluster_dict_calcs:
+            common_names = set(names) & cluster_dict_calcs[cluster_name]
+            if common_names:
+                cluster_dict_names[cluster_name] = list(common_names)
+        
+        checked_calculations_list = []
+        for calc in self.corrected_calculations_list + self.calculations_without_deviations:
+            check_list = []
+            for cluster_name in cluster_dict_names:
+                if cluster_name in calc.data_dict and (set(cluster_dict_names[cluster_name]) <= set(calc.data_dict[cluster_name].columns)):
+                    check_list.append(True)
+                else:
+                    check_list.append(False)
+                if False not in check_list:
+                    checked_calculations_list.append(calc)
+        
+        for cluster_name in cluster_dict_names:
+            for name in cluster_dict_names[cluster_name]:
+                dynamic_parameters_dict[name] = {}
+                dynamic_parameters_dict[name]["Time"] = []
+                dynamic_parameters_dict[name]["min"] = []
+                dynamic_parameters_dict[name]["max"] = []
+                dynamic_parameters_dict[name]["mean"] = []
+                dynamic_parameters_dict[name]["std"] = []
+            time_name = checked_calculations_list[0].data_dict[cluster_name].columns[0]
+            clusters_list = [calc.data_dict[cluster_name][[time_name] + cluster_dict_names[cluster_name]] for calc in checked_calculations_list]
+            start_time = min([cluster[time_name].iloc[0] for cluster in clusters_list])
+            while True:
+                clusters_list = [cluster for cluster in clusters_list if cluster[time_name].iloc[-1] > start_time]
+                if not clusters_list:
+                    break
+                finish_time = max([cluster[time_name][cluster[time_name] > start_time].iloc[0] for cluster in clusters_list])
+                clusters_moment_list = [cluster[(cluster[time_name] > start_time) & (cluster[time_name] <= finish_time)] for cluster in clusters_list]
+                
+                for name in cluster_dict_names[cluster_name]:
+                    dynamic_parameters_dict[name]["Time"].append(finish_time)
+                    values = [cluster[name] for cluster in clusters_moment_list]
+                    dynamic_parameters_dict[name]["min"].append(np.min([series.min() for series in values]))
+                    dynamic_parameters_dict[name]["max"].append(np.max([series.max() for series in values]))
+                    last_values = np.array([value.iloc[-1] for value in values])
+                    dynamic_parameters_dict[name]["mean"].append(last_values.mean())
+                    dynamic_parameters_dict[name]["std"].append(last_values.std())
+                
+                start_time = finish_time
+        
+        for name in dynamic_parameters_dict:
+            dynamic_parameters_dict[name] = pd.DataFrame(dynamic_parameters_dict[name])
+        
+        for parameter in self.dynamic_parameters:
+            if isinstance(parameter["name"] , str):
+                parameter["frame"] = dynamic_parameters_dict[parameter["name"]]
+            else:
+                names = list(parameter["name"])
+                frames_list = [dynamic_parameters_dict[name] for name in names]
+                Time_list = [frame["Time"] for frame in frames_list]
+                Time_series = Time_list[0]
+                check_list = [len(Time_series) == len(series) and (Time_series == series).all() for series in Time_list]
+                if False not in check_list:
+                    min_list = [frame["min"] for frame in frames_list]
+                    max_list = [frame["max"] for frame in frames_list]
+                    mean_list = [frame["mean"] for frame in frames_list]
+                    std_list = [frame["std"] for frame in frames_list]
+                    
+                    min_series = pd.Series([np.min(i) for i in zip(*min_list)], name = "min")
+                    max_series = pd.Series([np.max(i) for i in zip(*max_list)], name = "max")
+                    mean_series = pd.Series([np.array(i).mean() for i in zip(*mean_list)], name = "mean")
+                    std_series = pd.Series([np.sqrt(np.sum(np.square(np.array(i)))) for i in zip(*std_list)], name = "std")
+                    
+                    parameter["frame"] = pd.DataFrame([Time_series, min_series, max_series, mean_series, std_series]).T
+    
+    def drow_dynamic_data(self, drow_min = True, 
+                          drow_max = True, 
+                          drow_mean = True, 
+                          drow_src = True, 
+                          drow_without_dev = True):
+        for parameter in self.dynamic_parameters:
+            get_named_data = ([],[])
+            get_unamed_data = ([],[])
+            description = parameter["description"] + "\n"
+            names = parameter["name"]
+            
+            if isinstance(names, str):
+                names = [names]
+            
+            for name in names:
+                if drow_src:
+                    for calc in self.corrected_calculations_list:
+                        table = calc.get_parameter_table(name)
+                        get_unamed_data[0].append(table.iloc[:,0])
+                        get_unamed_data[1].append(table[name])
+                
+                if drow_without_dev:
+                    for calc in self.calculations_without_deviations:
+                        table = calc.get_parameter_table(name)
+                        get_named_data[0].append(table.iloc[:,0])
+                        get_named_data[1].append(table[name])
+                        description = description + str(len(get_named_data[0])) + r" - расчёт без отклонений " + name + ", "
+                    
+            if drow_mean:
+                get_named_data[0].append(parameter["frame"]["Time"])
+                get_named_data[1].append(parameter["frame"]["mean"])
+                description = description + str(len(get_named_data[0])) + r" - среднее значение"+ ", "
+            
+            if drow_min:
+                get_named_data[0].append(parameter["frame"]["Time"])
+                get_named_data[1].append(parameter["frame"]["min"])
+                description = description + str(len(get_named_data[0])) + r" - минимальное значение"+ ", "
+            
+            if drow_max:
+                get_named_data[0].append(parameter["frame"]["Time"])
+                get_named_data[1].append(parameter["frame"]["max"])
+                description = description + str(len(get_named_data[0])) + r" - максимальное значение"+ ", "
+            
+            if not get_named_data[0]:
+                get_named_data = None
+            
+            if not get_unamed_data[0]:
+                get_unamed_data = None
+            
+            labelx = parameter.get("labelx")
+            if not labelx:
+                labelx=""
+            
+            labely = parameter.get("labely")
+            if not labely:
+                labely=""
+            
+            x1, y1, x2, y2, mult_x, mult_y, shift_x, shift_y, stpx, stpy = (parameter.get("x1"),
+                                                                            parameter.get("y1"),
+                                                                            parameter.get("x2"),
+                                                                            parameter.get("y2"),
+                                                                            parameter.get("mult_x"),
+                                                                            parameter.get("mult_y"),
+                                                                            parameter.get("shift_x"),
+                                                                            parameter.get("shift_y"),
+                                                                            parameter.get("stpx"),
+                                                                            parameter.get("stpy"),
+                                                                            )
+            if get_named_data or get_unamed_data:
+                path_dict = graph (str(1+len(self.graph_list)), 
+                                   get_named_data, get_unamed_data, 
+                                   labelx, labely, 
+                                   x1, y1, x2, y2, 
+                                   mult_x, mult_y, 
+                                   shift_x, shift_y, 
+                                   stpx, stpy)
+                path_dict["description"] = description + "\n"
+                self.graph_list.append(path_dict)
+    
+    def drow_histigramm(self, parameter):
+        
+        
+        
+        description = parameter["description"] + "\n"
+        hist_series = self.corrected_frame[parameter["symbol"]]
+        values_without_deviations = pd.Series([calc.get_key_parameter(parameter["key_parameter_name"], 
+                                                                      parameter["search_name"], 
+                                                                      parameter["search_value"], 
+                                                                      parameter["cut_down"], 
+                                                                      parameter["cut_up"]) for calc in self.calculations_without_deviations])
+        
+        if "mult" in parameter:
+            values_without_deviations = values_without_deviations * parameter["mult"]
+        if "shift" in parameter:
+            values_without_deviations = values_without_deviations + parameter["shift"]
+        
+        
+        hist_series = pd.concat([hist_series,values_without_deviations]).reset_index(drop = True)
+        plt.figure(figsize=(10,6))
+        n, bins, pathes = plt.hist(hist_series,bins=parameter["bins"],alpha=.7,color='black')
+        plt.xticks(bins)
+        plt.xlabel(parameter["label"],fontsize=15,loc='center')
+        plt.ylabel('N', rotation='horizontal',fontsize=15,loc='top')
+        
+        path_dict = {}
+        fmt = "png"
+        GrName = str(len(self.graph_list)+1)
+        path_dict[fmt]=os.path.abspath(os.curdir)+"\\"+GrName + "." + fmt
+        path_dict["description"] = description + "Гистограмма распределения"
+        plt.savefig('{}.{}'.format(GrName, fmt), format=fmt, bbox_inches='tight')
+        plt.close()
+        self.graph_list.append(path_dict)
+    
+    def drow_convergence(self, parameter,
+                         mean = True, std = True, rel_std = True):
+        convergence_frame = parameter["convergence"]
+        description = parameter["description"] + "\n"
+        units = parameter["label"].split(",")[-1]
+        
+        if mean:
+            path_dict = graph(str(1+len(self.graph_list)),
+                              get_named_data = (convergence_frame["N"],convergence_frame["mean"]),
+                              lablex = "N", labley = "μ," + units, y1 = 0)
+            path_dict["description"] = description + "Среднее значение за N расчетов"
+            self.graph_list.append(path_dict)
+        if std:
+            path_dict = graph(str(1+len(self.graph_list)),
+                              get_named_data = (convergence_frame["N"],convergence_frame["std"]),
+                              lablex = "N", labley = "σ," + units)
+            path_dict["description"] = description + "Среднеквадратическое отклонение за N расчетов"
+            self.graph_list.append(path_dict)
+        if rel_std:
+            path_dict = graph(str(1+len(self.graph_list)),
+                              get_named_data = (convergence_frame["N"],convergence_frame["rel_std"]),
+                              lablex = "N", labley = "σ, %", mult_y=100)
+            path_dict["description"] = description + "Относительное среднеквадратическое отклонение за N расчетов"
+            self.graph_list.append(path_dict)
+    
+    
+    def drow_key_data(self, hist = True,
+                      mean = True,
+                      std = True,
+                      rel_std = True):
+        for parameter in self.key_parameters:
+            if hist:
+                self.drow_histigramm(parameter)
+            if mean or std or rel_std:
+                self.drow_convergence(parameter, mean, std, rel_std)
+            
+            
+    """
+    def drow_heat_maps(self, a = 1, b = 1, pearson = True, spearman = True, kendall = True):
+        corr_names = []
+        if pearson:
+            corr_names.append("pearson")
+        if spearman:
+            corr_names.append("spearman")
+        if kendall:
+            corr_names.append("kendall")
+        var_number = len(self.vars_frame.columns)
+        key_number = len(self.key_parameters)
+                
+        for method in corr_names:
+            corr_frame = self.corrected_frame.corr(method).iloc[:var_number,var_number:]
+            plt.figure(figsize=(a*0.7*key_number,b*0.37*var_number),)
+            plt.rc('ytick',labelsize=10)
+            plt.rc('xtick',labelsize=10)
+            sns.heatmap(corr_frame,cmap='coolwarm',annot=True,annot_kws={'size':10},fmt='.2f',linecolor='white',linewidths=2,cbar=False)            
+            path_dict = {}
+            fmt = "png"
+            GrName = str(len(self.graph_list)+1)
+            path_dict[fmt]=os.path.abspath(os.curdir)+"\\"+GrName + "." + fmt
+            path_dict["description"] = "Тепловая карта корреляции " + method.title()
+            plt.savefig('{}.{}'.format(GrName, fmt), format=fmt, bbox_inches='tight')
+            plt.close()
+            self.graph_list.append(path_dict)
+        """
+        
